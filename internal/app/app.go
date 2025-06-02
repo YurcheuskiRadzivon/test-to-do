@@ -9,6 +9,9 @@ import (
 	"syscall"
 
 	"github.com/YurcheuskiRadzivon/test-to-do/config"
+	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http"
+	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/repositories"
+	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/service"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/infrastructure/database/queries"
 	"github.com/YurcheuskiRadzivon/test-to-do/pkg/httpserver"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -29,9 +32,13 @@ func Run(cfg *config.Config) {
 
 	q := queries.New(conn)
 
-	_ = q
+	noteRepo := repositories.NewNoteRepo(q, conn)
+
+	noteService := service.NewNoteService(noteRepo)
 
 	httpserver := httpserver.New(cfg.HTTP.PORT)
+
+	http.NewRoute(httpserver.App, noteService)
 
 	httpserver.Start()
 

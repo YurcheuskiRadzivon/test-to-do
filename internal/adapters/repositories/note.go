@@ -13,6 +13,13 @@ type NoteRepo struct {
 	queries *queries.Queries
 }
 
+func NewNoteRepo(db *queries.Queries, pool *pgxpool.Pool) *NoteRepo {
+	return &NoteRepo{
+		queries: db,
+		pool:    pool,
+	}
+}
+
 func (nr *NoteRepo) CreateNote(ctx context.Context, note entity.Note) error {
 	return nr.queries.CreateNote(ctx, queries.CreateNoteParams{
 		Title:       note.Title,
