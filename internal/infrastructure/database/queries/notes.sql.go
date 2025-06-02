@@ -7,8 +7,6 @@ package queries
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createNote = `-- name: CreateNote :exec
@@ -17,9 +15,9 @@ VALUES ($1, $2, $3)
 `
 
 type CreateNoteParams struct {
-	Title       string      `json:"title"`
-	Description string      `json:"description"`
-	Status      pgtype.Text `json:"status"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Status      string `json:"status"`
 }
 
 func (q *Queries) CreateNote(ctx context.Context, arg CreateNoteParams) error {
@@ -52,6 +50,35 @@ func (q *Queries) GetNote(ctx context.Context, noteID int) (Note, error) {
 	return i, err
 }
 
+const getNotes = `-- name: GetNotes :many
+SELECT note_id, title, description, status FROM notes
+`
+
+func (q *Queries) GetNotes(ctx context.Context) ([]Note, error) {
+	rows, err := q.db.Query(ctx, getNotes)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Note
+	for rows.Next() {
+		var i Note
+		if err := rows.Scan(
+			&i.NoteID,
+			&i.Title,
+			&i.Description,
+			&i.Status,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateNote = `-- name: UpdateNote :exec
 UPDATE notes
 SET title = $2, description = $3, status = $4
@@ -59,10 +86,10 @@ WHERE note_id = $1
 `
 
 type UpdateNoteParams struct {
-	NoteID      int         `json:"note_id"`
-	Title       string      `json:"title"`
-	Description string      `json:"description"`
-	Status      pgtype.Text `json:"status"`
+	NoteID      int    `json:"note_id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Status      string `json:"status"`
 }
 
 func (q *Queries) UpdateNote(ctx context.Context, arg UpdateNoteParams) error {

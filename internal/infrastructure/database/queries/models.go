@@ -4,13 +4,9 @@
 
 package queries
 
-import (
-	"github.com/jackc/pgx/v5/pgtype"
-)
-
 type Note struct {
-	NoteID      int         `json:"note_id"`
-	Title       string      `json:"title"`
-	Description string      `json:"description"`
-	Status      pgtype.Text `json:"status"`
+	NoteID      int    `json:"note_id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Status      string `json:"status"`
 }

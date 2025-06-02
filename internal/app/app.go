@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"os"
@@ -8,7 +9,9 @@ import (
 	"syscall"
 
 	"github.com/YurcheuskiRadzivon/test-to-do/config"
+	"github.com/YurcheuskiRadzivon/test-to-do/internal/infrastructure/database/queries"
 	"github.com/YurcheuskiRadzivon/test-to-do/pkg/httpserver"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	_ "github.com/lib/pq"
 	"github.com/pressly/goose"
@@ -18,6 +21,15 @@ func Run(cfg *config.Config) {
 	if err := migrate(cfg.PG.URL); err != nil {
 		log.Fatalf("migrate: %v", err)
 	}
+
+	conn, err := pgxpool.New(context.Background(), cfg.PG.URL)
+	if err != nil {
+		log.Fatal("connection: ", err)
+	}
+
+	q := queries.New(conn)
+
+	_ = q
 
 	httpserver := httpserver.New(cfg.HTTP.PORT)
 
@@ -34,7 +46,7 @@ func Run(cfg *config.Config) {
 		log.Panic("Httpserver: %v", err)
 	}
 
-	err := httpserver.Shutdown()
+	err = httpserver.Shutdown()
 	if err != nil {
 		log.Fatalf("Httpserver: %v", err)
 	}

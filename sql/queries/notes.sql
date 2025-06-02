@@ -12,3 +12,6 @@ WHERE note_id = $1;
 
 -- name: GetNote :one
 SELECT * FROM notes WHERE note_id = $1;
+
+-- name: GetNotes :many
+SELECT * FROM notes;

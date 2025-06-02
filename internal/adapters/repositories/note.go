@@ -1,1 +1,67 @@
 package repositories
+
+import (
+	"context"
+
+	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/entity"
+	"github.com/YurcheuskiRadzivon/test-to-do/internal/infrastructure/database/queries"
+	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+type NoteRepo struct {
+	pool    *pgxpool.Pool
+	queries *queries.Queries
+}
+
+func (nr *NoteRepo) CreateNote(ctx context.Context, note entity.Note) error {
+	return nr.queries.CreateNote(ctx, queries.CreateNoteParams{
+		Title:       note.Title,
+		Description: note.Description,
+		Status:      note.Status,
+	})
+}
+func (nr *NoteRepo) DeleteNote(ctx context.Context, noteID int) error {
+	return nr.queries.DeleteNote(ctx, noteID)
+}
+func (nr *NoteRepo) GetNotes(ctx context.Context) ([]entity.Note, error) {
+	notesWithoutFormat, err := nr.queries.GetNotes(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	notes := make([]entity.Note, 0)
+
+	for _, val := range notesWithoutFormat {
+		notes = append(notes, entity.Note{
+			NoteID:      val.NoteID,
+			Title:       val.Title,
+			Description: val.Description,
+			Status:      val.Status,
+		})
+	}
+
+	return notes, nil
+}
+func (nr *NoteRepo) GetNote(ctx context.Context, noteID int) (entity.Note, error) {
+	noteWithoutFormat, err := nr.queries.GetNote(ctx, noteID)
+	if err != nil {
+		return entity.Note{}, err
+	}
+
+	note := entity.Note{
+		NoteID:      noteWithoutFormat.NoteID,
+		Title:       noteWithoutFormat.Title,
+		Description: noteWithoutFormat.Description,
+		Status:      noteWithoutFormat.Status,
+	}
+
+	return note, nil
+}
+func (nr *NoteRepo) UpdateNote(ctx context.Context, note entity.Note) error {
+	return nr.queries.UpdateNote(ctx, queries.UpdateNoteParams{
+		NoteID:      note.NoteID,
+		Title:       note.Title,
+		Description: note.Description,
+		Status:      note.Description,
+	})
+}
