@@ -11,10 +11,10 @@ func NewRoute(app *fiber.App, noteService *service.NoteService) {
 		noteService: noteService,
 	}
 	_ = APIController
-	app.Get("/note", APIController.GetNote)
+	app.Get("/note/:id", APIController.GetNote)
 	app.Get("/notes", APIController.GetNotes)
 	app.Post("/note", APIController.CreateNote)
-	app.Delete("/note", APIController.DeleteNote)
-	app.Put("/note", APIController.UpdateNote)
+	app.Delete("/note/:id", APIController.DeleteNote)
+	app.Put("/note/:id", APIController.UpdateNote)
 
 }
