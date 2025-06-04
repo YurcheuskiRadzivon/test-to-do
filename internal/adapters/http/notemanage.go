@@ -3,6 +3,7 @@ package http
 import (
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/request"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/response"
@@ -21,11 +22,11 @@ func (c *APIController) GetNotes(ctx *fiber.Ctx) error {
 }
 
 func (c *APIController) GetNote(ctx *fiber.Ctx) error {
-	var req request.GetNoteRequest
-	if err := ctx.BodyParser(&req); err != nil {
+	noteID, err := strconv.Atoi(ctx.Params("id"))
+	if err != nil || noteID == 0 {
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
-	note, err := c.noteService.GetNote(ctx.Context(), req.NoteID)
+	note, err := c.noteService.GetNote(ctx.Context(), noteID)
 	if err != nil {
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
@@ -55,33 +56,43 @@ func (c *APIController) CreateNote(ctx *fiber.Ctx) error {
 }
 
 func (c *APIController) UpdateNote(ctx *fiber.Ctx) error {
+	noteID, err := strconv.Atoi(ctx.Params("id"))
+	if err != nil || noteID == 0 {
+		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+	}
+
 	var req request.UpdateNoteRequest
 	if err := ctx.BodyParser(&req); err != nil {
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
-	err := c.noteService.UpdateNote(ctx.Context(), entity.Note{
-		NoteID:      req.ID,
+
+	err = c.noteService.UpdateNote(ctx.Context(), entity.Note{
+		NoteID:      noteID,
 		Title:       req.Title,
 		Description: req.Description,
 		Status:      req.Status,
 	})
+
 	if err != nil {
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
+
 	return ctx.Status(http.StatusOK).JSON(response.UpdateNoteResponse{
 		Message: response.MessageSuccsessfully,
 	})
 }
 
 func (c *APIController) DeleteNote(ctx *fiber.Ctx) error {
-	var req request.DeleteNoteRequest
-	if err := ctx.BodyParser(&req); err != nil {
+	noteID, err := strconv.Atoi(ctx.Params("id"))
+	if err != nil || noteID == 0 {
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
-	err := c.noteService.DeleteNote(ctx.Context(), req.NoteID)
+
+	err = c.noteService.DeleteNote(ctx.Context(), noteID)
 	if err != nil {
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
+
 	return ctx.Status(http.StatusOK).JSON(response.DeleteNoteResponse{
 		Message: response.MessageSuccsessfully,
 	})
