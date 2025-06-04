@@ -5,7 +5,7 @@
 package queries
 
 type Note struct {
-	NoteID      int    `json:"note_id"`
+	ID          int    `json:"id"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Status      string `json:"status"`

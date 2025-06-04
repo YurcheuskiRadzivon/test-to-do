@@ -34,6 +34,8 @@ services:
     build:
       context: .
       dockerfile: ./docker/app/Dockerfile
+    volumes:
+      - ./:/go/app
     env_file:
       - .env
     depends_on:

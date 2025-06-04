@@ -40,7 +40,7 @@ func (nr *NoteRepo) GetNotes(ctx context.Context) ([]entity.Note, error) {
 
 	for _, val := range notesWithoutFormat {
 		notes = append(notes, entity.Note{
-			NoteID:      val.NoteID,
+			NoteID:      val.ID,
 			Title:       val.Title,
 			Description: val.Description,
 			Status:      val.Status,
@@ -56,7 +56,7 @@ func (nr *NoteRepo) GetNote(ctx context.Context, noteID int) (entity.Note, error
 	}
 
 	note := entity.Note{
-		NoteID:      noteWithoutFormat.NoteID,
+		NoteID:      noteWithoutFormat.ID,
 		Title:       noteWithoutFormat.Title,
 		Description: noteWithoutFormat.Description,
 		Status:      noteWithoutFormat.Status,
@@ -66,7 +66,7 @@ func (nr *NoteRepo) GetNote(ctx context.Context, noteID int) (entity.Note, error
 }
 func (nr *NoteRepo) UpdateNote(ctx context.Context, note entity.Note) error {
 	return nr.queries.UpdateNote(ctx, queries.UpdateNoteParams{
-		NoteID:      note.NoteID,
+		ID:          note.NoteID,
 		Title:       note.Title,
 		Description: note.Description,
 		Status:      note.Description,

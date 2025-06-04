@@ -26,23 +26,23 @@ func (q *Queries) CreateNote(ctx context.Context, arg CreateNoteParams) error {
 }
 
 const deleteNote = `-- name: DeleteNote :exec
-DELETE FROM notes WHERE note_id = $1
+DELETE FROM notes WHERE id = $1
 `
 
-func (q *Queries) DeleteNote(ctx context.Context, noteID int) error {
-	_, err := q.db.Exec(ctx, deleteNote, noteID)
+func (q *Queries) DeleteNote(ctx context.Context, id int) error {
+	_, err := q.db.Exec(ctx, deleteNote, id)
 	return err
 }
 
 const getNote = `-- name: GetNote :one
-SELECT note_id, title, description, status FROM notes WHERE note_id = $1
+SELECT id, title, description, status FROM notes WHERE id = $1
 `
 
-func (q *Queries) GetNote(ctx context.Context, noteID int) (Note, error) {
-	row := q.db.QueryRow(ctx, getNote, noteID)
+func (q *Queries) GetNote(ctx context.Context, id int) (Note, error) {
+	row := q.db.QueryRow(ctx, getNote, id)
 	var i Note
 	err := row.Scan(
-		&i.NoteID,
+		&i.ID,
 		&i.Title,
 		&i.Description,
 		&i.Status,
@@ -51,7 +51,7 @@ func (q *Queries) GetNote(ctx context.Context, noteID int) (Note, error) {
 }
 
 const getNotes = `-- name: GetNotes :many
-SELECT note_id, title, description, status FROM notes
+SELECT id, title, description, status FROM notes
 `
 
 func (q *Queries) GetNotes(ctx context.Context) ([]Note, error) {
@@ -64,7 +64,7 @@ func (q *Queries) GetNotes(ctx context.Context) ([]Note, error) {
 	for rows.Next() {
 		var i Note
 		if err := rows.Scan(
-			&i.NoteID,
+			&i.ID,
 			&i.Title,
 			&i.Description,
 			&i.Status,
@@ -82,11 +82,11 @@ func (q *Queries) GetNotes(ctx context.Context) ([]Note, error) {
 const updateNote = `-- name: UpdateNote :exec
 UPDATE notes
 SET title = $2, description = $3, status = $4
-WHERE note_id = $1
+WHERE id = $1
 `
 
 type UpdateNoteParams struct {
-	NoteID      int    `json:"note_id"`
+	ID          int    `json:"id"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Status      string `json:"status"`
@@ -94,7 +94,7 @@ type UpdateNoteParams struct {
 
 func (q *Queries) UpdateNote(ctx context.Context, arg UpdateNoteParams) error {
 	_, err := q.db.Exec(ctx, updateNote,
-		arg.NoteID,
+		arg.ID,
 		arg.Title,
 		arg.Description,
 		arg.Status,

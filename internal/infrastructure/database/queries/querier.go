@@ -10,8 +10,8 @@ import (
 
 type Querier interface {
 	CreateNote(ctx context.Context, arg CreateNoteParams) error
-	DeleteNote(ctx context.Context, noteID int) error
-	GetNote(ctx context.Context, noteID int) (Note, error)
+	DeleteNote(ctx context.Context, id int) error
+	GetNote(ctx context.Context, id int) (Note, error)
 	GetNotes(ctx context.Context) ([]Note, error)
 	UpdateNote(ctx context.Context, arg UpdateNoteParams) error
 }
