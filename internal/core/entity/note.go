@@ -5,4 +5,5 @@ type Note struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Status      string `json:"status"`
+	AuthorID    int    `json:"author_id"`
 }

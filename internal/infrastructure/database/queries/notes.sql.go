@@ -10,52 +10,75 @@ import (
 )
 
 const createNote = `-- name: CreateNote :exec
-INSERT INTO notes (title, description, status)
-VALUES ($1, $2, $3)
+WITH inserted_note AS (
+    INSERT INTO notes (title, description, status, author_id)
+    VALUES ($1, $2, $3, $4)
+    RETURNING id
+)
+INSERT INTO usersnotes (user_id, note_id)
+SELECT $4, inserted_note.id FROM inserted_note
 `
 
 type CreateNoteParams struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Status      string `json:"status"`
+	UserID      int    `json:"user_id"`
 }
 
 func (q *Queries) CreateNote(ctx context.Context, arg CreateNoteParams) error {
-	_, err := q.db.Exec(ctx, createNote, arg.Title, arg.Description, arg.Status)
+	_, err := q.db.Exec(ctx, createNote,
+		arg.Title,
+		arg.Description,
+		arg.Status,
+		arg.UserID,
+	)
 	return err
 }
 
 const deleteNote = `-- name: DeleteNote :exec
-DELETE FROM notes WHERE id = $1
+DELETE FROM notes WHERE id = $1 AND author_id = $2
 `
 
-func (q *Queries) DeleteNote(ctx context.Context, id int) error {
-	_, err := q.db.Exec(ctx, deleteNote, id)
+type DeleteNoteParams struct {
+	ID       int `json:"id"`
+	AuthorID int `json:"author_id"`
+}
+
+func (q *Queries) DeleteNote(ctx context.Context, arg DeleteNoteParams) error {
+	_, err := q.db.Exec(ctx, deleteNote, arg.ID, arg.AuthorID)
 	return err
 }
 
 const getNote = `-- name: GetNote :one
-SELECT id, title, description, status FROM notes WHERE id = $1
+SELECT id, title, description, status, author_id FROM notes WHERE id = $1 AND author_id = $2
 `
 
-func (q *Queries) GetNote(ctx context.Context, id int) (Note, error) {
-	row := q.db.QueryRow(ctx, getNote, id)
+type GetNoteParams struct {
+	ID       int `json:"id"`
+	AuthorID int `json:"author_id"`
+}
+
+func (q *Queries) GetNote(ctx context.Context, arg GetNoteParams) (Note, error) {
+	row := q.db.QueryRow(ctx, getNote, arg.ID, arg.AuthorID)
 	var i Note
 	err := row.Scan(
 		&i.ID,
 		&i.Title,
 		&i.Description,
 		&i.Status,
+		&i.AuthorID,
 	)
 	return i, err
 }
 
 const getNotes = `-- name: GetNotes :many
-SELECT id, title, description, status FROM notes
+SELECT id, title, description, status, author_id FROM notes
+WHERE author_id = $1
 `
 
-func (q *Queries) GetNotes(ctx context.Context) ([]Note, error) {
-	rows, err := q.db.Query(ctx, getNotes)
+func (q *Queries) GetNotes(ctx context.Context, authorID int) ([]Note, error) {
+	rows, err := q.db.Query(ctx, getNotes, authorID)
 	if err != nil {
 		return nil, err
 	}
@@ -68,6 +91,7 @@ func (q *Queries) GetNotes(ctx context.Context) ([]Note, error) {
 			&i.Title,
 			&i.Description,
 			&i.Status,
+			&i.AuthorID,
 		); err != nil {
 			return nil, err
 		}
@@ -82,7 +106,7 @@ func (q *Queries) GetNotes(ctx context.Context) ([]Note, error) {
 const updateNote = `-- name: UpdateNote :exec
 UPDATE notes
 SET title = $2, description = $3, status = $4
-WHERE id = $1
+WHERE id = $1 AND author_id = $5
 `
 
 type UpdateNoteParams struct {
@@ -90,6 +114,7 @@ type UpdateNoteParams struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Status      string `json:"status"`
+	AuthorID    int    `json:"author_id"`
 }
 
 func (q *Queries) UpdateNote(ctx context.Context, arg UpdateNoteParams) error {
@@ -98,6 +123,7 @@ func (q *Queries) UpdateNote(ctx context.Context, arg UpdateNoteParams) error {
 		arg.Title,
 		arg.Description,
 		arg.Status,
+		arg.AuthorID,
 	)
 	return err
 }

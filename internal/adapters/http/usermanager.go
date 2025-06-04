@@ -11,54 +11,41 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func (c *APIController) GetNotes(ctx *fiber.Ctx) error {
+func (c *APIController) GetUsers(ctx *fiber.Ctx) error {
 	userID, err := strconv.Atoi(ctx.Get("Authorization"))
-	if err != nil || userID < 0 {
+	if err != nil || userID != 0 {
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
-	notes, err := c.noteService.GetNotes(ctx.Context(), userID)
+	users, err := c.userService.GetUsers(ctx.Context())
 	if err != nil {
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
-	return ctx.Status(http.StatusOK).JSON(response.GetNotesResponse{
-		Notes: notes,
-	})
+	return ctx.Status(http.StatusOK).JSON(users)
 }
 
-func (c *APIController) GetNote(ctx *fiber.Ctx) error {
+func (c *APIController) GetUser(ctx *fiber.Ctx) error {
 	userID, err := strconv.Atoi(ctx.Get("Authorization"))
 	if err != nil || userID < 0 {
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
-	noteID, err := strconv.Atoi(ctx.Params("id"))
-	if err != nil || noteID == 0 {
-		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
-	}
-	note, err := c.noteService.GetNote(ctx.Context(), noteID, userID)
+	user, err := c.userService.GetUser(ctx.Context(), userID)
 	if err != nil {
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
-	return ctx.Status(http.StatusOK).JSON(response.GetNoteResponse{
-		Note: note,
-	})
+	return ctx.Status(http.StatusOK).JSON(user)
 }
 
-func (c *APIController) CreateNote(ctx *fiber.Ctx) error {
-	userID, err := strconv.Atoi(ctx.Get("Authorization"))
-	if err != nil || userID < 0 {
-		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
-	}
-	var req request.CreateNoteRequest
+func (c *APIController) CreateUser(ctx *fiber.Ctx) error {
+	var req request.CreateUserRequest
 	if err := ctx.BodyParser(&req); err != nil {
 		log.Println(err)
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
 
-	err = c.noteService.CreateNote(ctx.Context(), entity.Note{
-		Title:       req.Title,
-		Description: req.Description,
-		Status:      req.Status,
-		AuthorID:    userID,
+	id, err := c.userService.CreateUser(ctx.Context(), entity.User{
+		Username: req.Username,
+		Password: req.Password,
+		Email:    req.Email,
 	})
 
 	if err != nil {
@@ -66,33 +53,25 @@ func (c *APIController) CreateNote(ctx *fiber.Ctx) error {
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
 
-	return ctx.Status(http.StatusOK).JSON(response.CreateNoteResponse{
-		Message: response.MessageSuccsessfully,
-	})
+	return ctx.Status(http.StatusOK).JSON(id)
 }
 
-func (c *APIController) UpdateNote(ctx *fiber.Ctx) error {
+func (c *APIController) UpdateUser(ctx *fiber.Ctx) error {
 	userID, err := strconv.Atoi(ctx.Get("Authorization"))
 	if err != nil || userID < 0 {
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
 
-	noteID, err := strconv.Atoi(ctx.Params("id"))
-	if err != nil || noteID == 0 {
-		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
-	}
-
-	var req request.UpdateNoteRequest
+	var req request.UpdateUserRequest
 	if err := ctx.BodyParser(&req); err != nil {
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
 
-	err = c.noteService.UpdateNote(ctx.Context(), entity.Note{
-		NoteID:      noteID,
-		Title:       req.Title,
-		Description: req.Description,
-		Status:      req.Status,
-		AuthorID:    userID,
+	err = c.userService.UpdateUser(ctx.Context(), entity.User{
+		UserID:   userID,
+		Username: req.Username,
+		Email:    req.Email,
+		Password: req.Password,
 	})
 
 	if err != nil {
@@ -104,18 +83,12 @@ func (c *APIController) UpdateNote(ctx *fiber.Ctx) error {
 	})
 }
 
-func (c *APIController) DeleteNote(ctx *fiber.Ctx) error {
+func (c *APIController) DeleteUser(ctx *fiber.Ctx) error {
 	userID, err := strconv.Atoi(ctx.Get("Authorization"))
 	if err != nil || userID < 0 {
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
-
-	noteID, err := strconv.Atoi(ctx.Params("id"))
-	if err != nil || noteID == 0 {
-		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
-	}
-
-	err = c.noteService.DeleteNote(ctx.Context(), noteID, userID)
+	err = c.userService.DeleteUser(ctx.Context(), userID)
 	if err != nil {
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}

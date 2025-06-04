@@ -1,0 +1,49 @@
+package service
+
+import (
+	"context"
+	"errors"
+
+	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/entity"
+	ports "github.com/YurcheuskiRadzivon/test-to-do/internal/core/ports/repositories"
+)
+
+const (
+	statudsSuccessfully = "SUCCESS"
+	statdusInProgress   = "IN_PROGRESS"
+	statusNodtStart     = "NOT_START"
+)
+
+var (
+	errInvadlidStatusFormat = errors.New("INVALID_STATUS_FORMAT")
+	errIndvalidIDFormat     = errors.New("INVALID_ID_FORMAT")
+	errIndvalidTittleFormat = errors.New("INVALID_Title_FORMAT")
+)
+
+type UserService struct {
+	repo ports.UserRepository
+}
+
+func NewUserService(repo ports.UserRepository) *UserService {
+	return &UserService{repo: repo}
+}
+
+func (s *UserService) CreateUser(ctx context.Context, user entity.User) (int, error) {
+	return s.repo.CreateUser(ctx, user)
+}
+
+func (s *UserService) GetUser(ctx context.Context, userID int) (entity.User, error) {
+	return s.repo.GetUser(ctx, userID)
+}
+
+func (s *UserService) GetUsers(ctx context.Context) ([]entity.User, error) {
+	return s.repo.GetUsers(ctx)
+}
+
+func (s *UserService) UpdateUser(ctx context.Context, user entity.User) error {
+	return s.repo.UpdateUser(ctx, user)
+}
+
+func (s *UserService) DeleteUser(ctx context.Context, userID int) error {
+	return s.repo.DeleteUser(ctx, userID)
+}
