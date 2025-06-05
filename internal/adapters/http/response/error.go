@@ -10,5 +10,5 @@ const (
 )
 
 type Error struct {
-	Error string `json:"error" example:"message"`
+	Message string `json:"message" example:"message"`
 }

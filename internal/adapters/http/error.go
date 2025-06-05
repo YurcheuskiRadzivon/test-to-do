@@ -6,5 +6,5 @@ import (
 )
 
 func errorResponse(ctx *fiber.Ctx, code int, msg string) error {
-	return ctx.Status(code).JSON(response.Error{Error: msg})
+	return ctx.Status(code).JSON(response.Error{Message: msg})
 }

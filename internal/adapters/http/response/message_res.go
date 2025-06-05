@@ -4,6 +4,6 @@ const (
 	MessageSuccsessfully = "SUCCESFULLY"
 )
 
-type CreateNoteResponse struct {
-	Message string `json:"msg`
+type MessageResponse struct {
+	Message string `json:"message"`
 }

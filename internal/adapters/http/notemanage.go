@@ -20,9 +20,7 @@ func (c *APIController) GetNotes(ctx *fiber.Ctx) error {
 	if err != nil {
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
-	return ctx.Status(http.StatusOK).JSON(response.GetNotesResponse{
-		Notes: notes,
-	})
+	return ctx.Status(http.StatusOK).JSON(notes)
 }
 
 func (c *APIController) GetNote(ctx *fiber.Ctx) error {
@@ -38,9 +36,7 @@ func (c *APIController) GetNote(ctx *fiber.Ctx) error {
 	if err != nil {
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
-	return ctx.Status(http.StatusOK).JSON(response.GetNoteResponse{
-		Note: note,
-	})
+	return ctx.Status(http.StatusOK).JSON(note)
 }
 
 func (c *APIController) CreateNote(ctx *fiber.Ctx) error {
@@ -48,7 +44,7 @@ func (c *APIController) CreateNote(ctx *fiber.Ctx) error {
 	if err != nil || userID < 0 {
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
-	var req request.CreateNoteRequest
+	var req request.OperationNoteRequest
 	if err := ctx.BodyParser(&req); err != nil {
 		log.Println(err)
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
@@ -66,7 +62,7 @@ func (c *APIController) CreateNote(ctx *fiber.Ctx) error {
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
 
-	return ctx.Status(http.StatusOK).JSON(response.CreateNoteResponse{
+	return ctx.Status(http.StatusOK).JSON(response.MessageResponse{
 		Message: response.MessageSuccsessfully,
 	})
 }
@@ -82,7 +78,7 @@ func (c *APIController) UpdateNote(ctx *fiber.Ctx) error {
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
 
-	var req request.UpdateNoteRequest
+	var req request.OperationNoteRequest
 	if err := ctx.BodyParser(&req); err != nil {
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
@@ -99,7 +95,7 @@ func (c *APIController) UpdateNote(ctx *fiber.Ctx) error {
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
 
-	return ctx.Status(http.StatusOK).JSON(response.UpdateNoteResponse{
+	return ctx.Status(http.StatusOK).JSON(response.MessageResponse{
 		Message: response.MessageSuccsessfully,
 	})
 }
@@ -120,7 +116,7 @@ func (c *APIController) DeleteNote(ctx *fiber.Ctx) error {
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
 
-	return ctx.Status(http.StatusOK).JSON(response.DeleteNoteResponse{
+	return ctx.Status(http.StatusOK).JSON(response.MessageResponse{
 		Message: response.MessageSuccsessfully,
 	})
 }
