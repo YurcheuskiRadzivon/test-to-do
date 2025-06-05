@@ -9,4 +9,17 @@ type Note struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Status      string `json:"status"`
+	AuthorID    int    `json:"author_id"`
+}
+
+type User struct {
+	ID       int    `json:"id"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Email    string `json:"email"`
+}
+
+type Usersnote struct {
+	UserID int `json:"user_id"`
+	NoteID int `json:"note_id"`
 }

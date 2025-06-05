@@ -32,12 +32,12 @@ func (s *NoteService) CreateNote(ctx context.Context, note entity.Note) error {
 	return s.repo.CreateNote(ctx, note)
 }
 
-func (s *NoteService) GetNote(ctx context.Context, noteID int) (entity.Note, error) {
-	return s.repo.GetNote(ctx, noteID)
+func (s *NoteService) GetNote(ctx context.Context, noteID int, authorID int) (entity.Note, error) {
+	return s.repo.GetNote(ctx, noteID, authorID)
 }
 
-func (s *NoteService) GetNotes(ctx context.Context) ([]entity.Note, error) {
-	return s.repo.GetNotes(ctx)
+func (s *NoteService) GetNotes(ctx context.Context, authorID int) ([]entity.Note, error) {
+	return s.repo.GetNotes(ctx, authorID)
 }
 
 func (s *NoteService) UpdateNote(ctx context.Context, note entity.Note) error {
@@ -53,11 +53,11 @@ func (s *NoteService) UpdateNote(ctx context.Context, note entity.Note) error {
 	return s.repo.UpdateNote(ctx, note)
 }
 
-func (s *NoteService) DeleteNote(ctx context.Context, noteID int) error {
+func (s *NoteService) DeleteNote(ctx context.Context, noteID int, authorID int) error {
 	if noteID <= 0 {
 		return errInvalidIDFormat
 	}
-	return s.repo.DeleteNote(ctx, noteID)
+	return s.repo.DeleteNote(ctx, noteID, authorID)
 }
 
 func checkStatus(status string) bool {

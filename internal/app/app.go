@@ -33,12 +33,14 @@ func Run(cfg *config.Config) {
 	q := queries.New(conn)
 
 	noteRepo := repositories.NewNoteRepo(q, conn)
+	userRepo := repositories.NewUserRepo(q, conn)
 
 	noteService := service.NewNoteService(noteRepo)
+	userService := service.NewUserService(userRepo)
 
 	httpserver := httpserver.New(cfg.HTTP.PORT)
 
-	http.NewRoute(httpserver.App, noteService)
+	http.NewRoute(httpserver.App, noteService, userService)
 
 	httpserver.Start()
 

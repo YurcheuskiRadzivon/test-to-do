@@ -25,13 +25,19 @@ func (nr *NoteRepo) CreateNote(ctx context.Context, note entity.Note) error {
 		Title:       note.Title,
 		Description: note.Description,
 		Status:      note.Status,
+		UserID:      note.AuthorID,
 	})
 }
-func (nr *NoteRepo) DeleteNote(ctx context.Context, noteID int) error {
-	return nr.queries.DeleteNote(ctx, noteID)
+
+func (nr *NoteRepo) DeleteNote(ctx context.Context, noteID int, authorID int) error {
+	return nr.queries.DeleteNote(ctx, queries.DeleteNoteParams{
+		ID:       noteID,
+		AuthorID: authorID,
+	})
 }
-func (nr *NoteRepo) GetNotes(ctx context.Context) ([]entity.Note, error) {
-	notesWithoutFormat, err := nr.queries.GetNotes(ctx)
+
+func (nr *NoteRepo) GetNotes(ctx context.Context, authorID int) ([]entity.Note, error) {
+	notesWithoutFormat, err := nr.queries.GetNotes(ctx, authorID)
 	if err != nil {
 		return nil, err
 	}
@@ -44,13 +50,19 @@ func (nr *NoteRepo) GetNotes(ctx context.Context) ([]entity.Note, error) {
 			Title:       val.Title,
 			Description: val.Description,
 			Status:      val.Status,
+			AuthorID:    val.AuthorID,
 		})
 	}
 
 	return notes, nil
 }
-func (nr *NoteRepo) GetNote(ctx context.Context, noteID int) (entity.Note, error) {
-	noteWithoutFormat, err := nr.queries.GetNote(ctx, noteID)
+
+func (nr *NoteRepo) GetNote(ctx context.Context, noteID int, authorID int) (entity.Note, error) {
+	noteWithoutFormat, err := nr.queries.GetNote(ctx, queries.GetNoteParams{
+		ID:       noteID,
+		AuthorID: authorID,
+	})
+
 	if err != nil {
 		return entity.Note{}, err
 	}
@@ -60,15 +72,18 @@ func (nr *NoteRepo) GetNote(ctx context.Context, noteID int) (entity.Note, error
 		Title:       noteWithoutFormat.Title,
 		Description: noteWithoutFormat.Description,
 		Status:      noteWithoutFormat.Status,
+		AuthorID:    noteWithoutFormat.AuthorID,
 	}
 
 	return note, nil
 }
+
 func (nr *NoteRepo) UpdateNote(ctx context.Context, note entity.Note) error {
 	return nr.queries.UpdateNote(ctx, queries.UpdateNoteParams{
 		ID:          note.NoteID,
 		Title:       note.Title,
 		Description: note.Description,
 		Status:      note.Description,
+		AuthorID:    note.AuthorID,
 	})
 }

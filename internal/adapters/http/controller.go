@@ -8,4 +8,5 @@ import (
 type APIController struct {
 	app         *fiber.App
 	noteService *service.NoteService
+	userService *service.UserService
 }
