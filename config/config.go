@@ -9,6 +9,7 @@ type (
 	Config struct {
 		HTTP HTTP
 		PG   PG
+		APP  APP
 	}
 
 	HTTP struct {
@@ -17,6 +18,10 @@ type (
 
 	PG struct {
 		URL string `env:"PG_URL,required"`
+	}
+
+	APP struct {
+		DOMAIN string `env:"APP_DOMAIN,required"`
 	}
 )
 
