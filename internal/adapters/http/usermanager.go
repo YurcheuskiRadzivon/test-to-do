@@ -36,7 +36,7 @@ func (c *APIController) GetUser(ctx *fiber.Ctx) error {
 }
 
 func (c *APIController) CreateUser(ctx *fiber.Ctx) error {
-	var req request.CreateUserRequest
+	var req request.OperationUserRequest
 	if err := ctx.BodyParser(&req); err != nil {
 		log.Println(err)
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
@@ -62,7 +62,7 @@ func (c *APIController) UpdateUser(ctx *fiber.Ctx) error {
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
 
-	var req request.UpdateUserRequest
+	var req request.OperationUserRequest
 	if err := ctx.BodyParser(&req); err != nil {
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
@@ -78,7 +78,7 @@ func (c *APIController) UpdateUser(ctx *fiber.Ctx) error {
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
 
-	return ctx.Status(http.StatusOK).JSON(response.UpdateNoteResponse{
+	return ctx.Status(http.StatusOK).JSON(response.MessageResponse{
 		Message: response.MessageSuccsessfully,
 	})
 }
@@ -93,7 +93,7 @@ func (c *APIController) DeleteUser(ctx *fiber.Ctx) error {
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
 
-	return ctx.Status(http.StatusOK).JSON(response.DeleteNoteResponse{
+	return ctx.Status(http.StatusOK).JSON(response.MessageResponse{
 		Message: response.MessageSuccsessfully,
 	})
 }

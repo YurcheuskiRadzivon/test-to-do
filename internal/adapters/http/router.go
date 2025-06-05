@@ -11,17 +11,22 @@ func NewRoute(app *fiber.App, noteService *service.NoteService, userService *ser
 		noteService: noteService,
 		userService: userService,
 	}
+	noteGroup := app.Group("/manage")
+	{
+		noteGroup.Get("/note/:id", APIController.GetNote)
+		noteGroup.Get("/notes", APIController.GetNotes)
+		noteGroup.Post("/note", APIController.CreateNote)
+		noteGroup.Delete("/note/:id", APIController.DeleteNote)
+		noteGroup.Put("/note/:id", APIController.UpdateNote)
+	}
 
-	app.Get("/note/:id", APIController.GetNote)
-	app.Get("/notes", APIController.GetNotes)
-	app.Post("/note", APIController.CreateNote)
-	app.Delete("/note/:id", APIController.DeleteNote)
-	app.Put("/note/:id", APIController.UpdateNote)
-
-	app.Get("/user", APIController.GetUser)
-	app.Get("/users", APIController.GetUsers)
-	app.Post("/user", APIController.CreateUser)
-	app.Delete("/user", APIController.DeleteUser)
-	app.Put("/user", APIController.UpdateUser)
+	userGroup := app.Group("/account")
+	{
+		userGroup.Get("/user", APIController.GetUser)
+		userGroup.Get("/users", APIController.GetUsers)
+		userGroup.Post("/user", APIController.CreateUser)
+		userGroup.Delete("/user", APIController.DeleteUser)
+		userGroup.Put("/user", APIController.UpdateUser)
+	}
 
 }
