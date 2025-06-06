@@ -40,7 +40,7 @@ func Run(cfg *config.Config) {
 
 	httpserver := httpserver.New(cfg.HTTP.PORT)
 
-	http.NewRoute(httpserver.App, noteService, userService)
+	http.NewRoute(httpserver.App, noteService, userService, cfg)
 
 	httpserver.Start()
 

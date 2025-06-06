@@ -1,0 +1,402 @@
+openapi: 3.0.0
+info:
+  title: Test-ToDo - OpenAPI 3.0
+  description: |-
+    Test project - realization to do operations
+    
+    Some useful links:
+    - [Test-ToDo repository](https://github.com/YurcheuskiRadzivon/test-to-do.git)
+    
+    Other resourses:
+  contact:
+    email: yurcheuskiradzivon@gmail.com
+  version: 0.0.4
+externalDocs:
+  description: Find out more about Swagger
+  url: https://swagger.io
+servers:
+  - description: local testing
+    url: http://localhost:7070/
+tags:
+  - name: manage
+    description: Everything about manage your notes
+  - name: account
+    description: Operations about account
+paths:
+  /account/user:
+    get:
+      tags:
+        - account
+      summary: Get user infor by token.
+      description: You can get basic user info by token which genereate when you create user(token locate in header Authorization)
+      operationId: getUserByToken
+      security:
+        - apiKeyAuth: []
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid status value
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        
+    post:
+      tags:
+        - account
+      summary: Add a new user.
+      description: Add a new user and return user_id as token.
+      operationId: createfUser
+      requestBody:
+        description: Create a new user on the db.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OperationUserRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserID'
+        '400':
+          description: Invalid status value
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      tags:
+        - account
+      summary: Update user data.
+      description: Update user data by Id in token.
+      operationId: updateUserr
+      security:
+        - apiKeyAuth: []
+      requestBody:
+        description: New user info. 
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OperationUserRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: Invalid ID supplied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - account
+      summary: Deletes a user.
+      description: Delete a user.
+      operationId: deleteUserr
+      security:
+        - apiKeyAuth: []
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: Invalid ID supplied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                
+  /account/users:
+    get:
+      tags:
+        - account
+      summary: Get all users info.
+      description: Get all users info if you admin(user_id = 0).
+      operationId: getUsers
+      security:
+        - apiKeyAuth: []
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid status value
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+                
+  /manage/note/{note_id}:
+    get:
+      tags:
+        - manage
+      summary: Get note by note_id.
+      description: Get note by note_id.
+      operationId: getNote
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: note_id
+          in: path
+          description: ID of note to return
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/Note'
+        '400':
+          description: Invalid status value
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        
+    post:
+      tags:
+        - manage
+      summary: Create a new note.
+      description: Add a new note.
+      operationId: createNote
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: note_id
+          in: path
+          description: ID of note to return
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: Create a new note on the db.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OperationNoteRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: Invalid status value
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      tags:
+        - manage
+      summary: Update note.
+      description: Update note.
+      operationId: updateNote
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: note_id
+          in: path
+          description: ID of note to return
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: New user info. 
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OperationNoteRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: Invalid ID supplied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - manage
+      summary: Deletes a note.
+      description: Delete a note.
+      operationId: deleteNote
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: note_id
+          in: path
+          description: ID of note to return
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: Invalid ID supplied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                
+  /manage/notes:
+    get:
+      tags:
+        - manage
+      summary: Get all user notes.
+      description: Get all user notes.
+      operationId: getNotes
+      security:
+        - apiKeyAuth: []
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Note'
+        '400':
+          description: Invalid status value
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  
+
+components:
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      
+      
+      
+  schemas:
+    User:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          format: int64
+          example: 121123
+        username:
+          type: string
+          example: rodion
+        password:
+          type: string
+          example: rodion11222
+        email:
+          type: string
+          example: rodion12@gmail.com
+    Note:
+      type: object
+      properties:
+        note_id:
+          type: integer
+          format: int64
+          example: 121123
+        title:
+          type: string
+          example: New Code
+        description:
+          type: string
+          example: Abudabi
+        status:
+          type: string
+          example: SUCCESFULLY
+        author_id:
+          type: integer
+          format: int64
+          example: 121123
+        
+    
+    OperationUserRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          example: rodion
+        password:
+          type: string
+          example: rodion11222
+        email:
+          type: string
+          example: rodion12@gmail.com
+    OperationNoteRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          example: New Code
+        description:
+          type: string
+          example: Abudabi
+        status:
+          type: string
+          example: SUCCESFULLY
+          
+          
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+    UserID:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          format: int64
+          example: 121123
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: SUCCESS
