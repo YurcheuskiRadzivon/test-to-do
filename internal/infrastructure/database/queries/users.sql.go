@@ -46,19 +46,37 @@ func (q *Queries) DeleteUser(ctx context.Context, id int) error {
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, username, password, email FROM users
+SELECT username,email FROM users
 WHERE id = $1
 `
 
-func (q *Queries) GetUser(ctx context.Context, id int) (User, error) {
+type GetUserRow struct {
+	Username string `json:"username"`
+	Email    string `json:"email"`
+}
+
+func (q *Queries) GetUser(ctx context.Context, id int) (GetUserRow, error) {
 	row := q.db.QueryRow(ctx, getUser, id)
-	var i User
-	err := row.Scan(
-		&i.ID,
-		&i.Username,
-		&i.Password,
-		&i.Email,
-	)
+	var i GetUserRow
+	err := row.Scan(&i.Username, &i.Email)
+	return i, err
+}
+
+const getUserLoginParams = `-- name: GetUserLoginParams :one
+SELECT id, password 
+FROM users 
+WHERE username = $1
+`
+
+type GetUserLoginParamsRow struct {
+	ID       int    `json:"id"`
+	Password string `json:"password"`
+}
+
+func (q *Queries) GetUserLoginParams(ctx context.Context, username string) (GetUserLoginParamsRow, error) {
+	row := q.db.QueryRow(ctx, getUserLoginParams, username)
+	var i GetUserLoginParamsRow
+	err := row.Scan(&i.ID, &i.Password)
 	return i, err
 }
 
@@ -115,4 +133,15 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
 		arg.Email,
 	)
 	return err
+}
+
+const userExistsByID = `-- name: UserExistsByID :one
+SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)
+`
+
+func (q *Queries) UserExistsByID(ctx context.Context, id int) (bool, error) {
+	row := q.db.QueryRow(ctx, userExistsByID, id)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }

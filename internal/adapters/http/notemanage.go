@@ -8,13 +8,16 @@ import (
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/request"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/response"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/entity"
+	"github.com/YurcheuskiRadzivon/test-to-do/pkg/jwtservice"
 	"github.com/gofiber/fiber/v2"
 )
 
 func (c *APIController) GetNotes(ctx *fiber.Ctx) error {
-	userID, err := strconv.Atoi(ctx.Get("Authorization"))
-	if err != nil || userID < 0 {
-		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+	token := ctx.Get("Authorization")
+
+	userID, err := c.jwtS.GetUserID(token)
+	if err != nil {
+		return errorResponse(ctx, http.StatusBadRequest, jwtservice.StatusInvalidToken)
 	}
 	notes, err := c.noteService.GetNotes(ctx.Context(), userID)
 	if err != nil {
@@ -24,10 +27,13 @@ func (c *APIController) GetNotes(ctx *fiber.Ctx) error {
 }
 
 func (c *APIController) GetNote(ctx *fiber.Ctx) error {
-	userID, err := strconv.Atoi(ctx.Get("Authorization"))
-	if err != nil || userID < 0 {
-		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+	token := ctx.Get("Authorization")
+
+	userID, err := c.jwtS.GetUserID(token)
+	if err != nil {
+		return errorResponse(ctx, http.StatusBadRequest, jwtservice.StatusInvalidToken)
 	}
+
 	noteID, err := strconv.Atoi(ctx.Params("id"))
 	if err != nil || noteID == 0 {
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
@@ -40,10 +46,13 @@ func (c *APIController) GetNote(ctx *fiber.Ctx) error {
 }
 
 func (c *APIController) CreateNote(ctx *fiber.Ctx) error {
-	userID, err := strconv.Atoi(ctx.Get("Authorization"))
-	if err != nil || userID < 0 {
-		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+	token := ctx.Get("Authorization")
+
+	userID, err := c.jwtS.GetUserID(token)
+	if err != nil {
+		return errorResponse(ctx, http.StatusBadRequest, jwtservice.StatusInvalidToken)
 	}
+
 	var req request.OperationNoteRequest
 	if err := ctx.BodyParser(&req); err != nil {
 		log.Println(err)
@@ -68,9 +77,11 @@ func (c *APIController) CreateNote(ctx *fiber.Ctx) error {
 }
 
 func (c *APIController) UpdateNote(ctx *fiber.Ctx) error {
-	userID, err := strconv.Atoi(ctx.Get("Authorization"))
-	if err != nil || userID < 0 {
-		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+	token := ctx.Get("Authorization")
+
+	userID, err := c.jwtS.GetUserID(token)
+	if err != nil {
+		return errorResponse(ctx, http.StatusBadRequest, jwtservice.StatusInvalidToken)
 	}
 
 	noteID, err := strconv.Atoi(ctx.Params("id"))
@@ -101,9 +112,11 @@ func (c *APIController) UpdateNote(ctx *fiber.Ctx) error {
 }
 
 func (c *APIController) DeleteNote(ctx *fiber.Ctx) error {
-	userID, err := strconv.Atoi(ctx.Get("Authorization"))
-	if err != nil || userID < 0 {
-		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+	token := ctx.Get("Authorization")
+
+	userID, err := c.jwtS.GetUserID(token)
+	if err != nil {
+		return errorResponse(ctx, http.StatusBadRequest, jwtservice.StatusInvalidToken)
 	}
 
 	noteID, err := strconv.Atoi(ctx.Params("id"))

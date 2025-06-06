@@ -7,9 +7,11 @@ import (
 
 type (
 	Config struct {
-		HTTP HTTP
-		PG   PG
-		APP  APP
+		HTTP  HTTP
+		PG    PG
+		APP   APP
+		JWT   JWT
+		ADMIN ADMIN
 	}
 
 	HTTP struct {
@@ -22,6 +24,14 @@ type (
 
 	APP struct {
 		DOMAIN string `env:"APP_DOMAIN,required"`
+	}
+
+	JWT struct {
+		SECRETKEY string `env:"SECRET_KEY,required"`
+	}
+
+	ADMIN struct {
+		ID int `env:"ADMIN_ID,required"`
 	}
 )
 

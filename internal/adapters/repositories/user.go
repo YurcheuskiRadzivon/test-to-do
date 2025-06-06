@@ -36,18 +36,13 @@ func (ur *UserRepo) DeleteUser(ctx context.Context, userID int) error {
 	return ur.queries.DeleteUser(ctx, userID)
 }
 
-func (ur *UserRepo) GetUser(ctx context.Context, userID int) (entity.User, error) {
+func (ur *UserRepo) GetUser(ctx context.Context, userID int) (string, string, error) {
 	userFromDB, err := ur.queries.GetUser(ctx, userID)
 	if err != nil {
-		return entity.User{}, err
+		return "", "", err
 	}
 
-	return entity.User{
-		UserID:   userFromDB.ID,
-		Username: userFromDB.Username,
-		Password: userFromDB.Password,
-		Email:    userFromDB.Email,
-	}, nil
+	return userFromDB.Username, userFromDB.Email, nil
 }
 
 func (ur *UserRepo) GetUsers(ctx context.Context) ([]entity.User, error) {
@@ -76,4 +71,16 @@ func (ur *UserRepo) UpdateUser(ctx context.Context, user entity.User) error {
 		Password: user.Password,
 		Email:    user.Email,
 	})
+}
+
+func (ur *UserRepo) GetUserLoginParams(ctx context.Context, username string) (int, string, error) {
+	loginParams, err := ur.queries.GetUserLoginParams(ctx, username)
+	if err != nil {
+		return -1, "", err
+	}
+	return loginParams.ID, loginParams.Password, nil
+}
+
+func (ur *UserRepo) UserExistsByID(ctx context.Context, id int) (bool, error) {
+	return ur.queries.UserExistsByID(ctx, id)
 }

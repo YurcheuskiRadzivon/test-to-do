@@ -1,6 +1,7 @@
 package http
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/request"
@@ -11,7 +12,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (c *APIController) GetUser(ctx *fiber.Ctx) error {
+func (c *APIController) GetUsers(ctx *fiber.Ctx) error {
 	token := ctx.Get("Authorization")
 
 	userID, err := c.jwtS.GetUserID(token)
@@ -19,26 +20,22 @@ func (c *APIController) GetUser(ctx *fiber.Ctx) error {
 		return errorResponse(ctx, http.StatusBadRequest, jwtservice.StatusInvalidToken)
 	}
 
-	username, email, err := c.userService.GetUser(ctx.Context(), userID)
+	if userID != 0 {
+		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+	}
+
+	users, err := c.userService.GetUsers(ctx.Context())
 	if err != nil {
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
-	return ctx.Status(http.StatusOK).JSON(response.UserData{
-		Username: username,
-		Email:    email,
-	})
+
+	return ctx.Status(http.StatusOK).JSON(users)
 }
 
-func (c *APIController) UpdateUser(ctx *fiber.Ctx) error {
-	token := ctx.Get("Authorization")
-
-	userID, err := c.jwtS.GetUserID(token)
-	if err != nil {
-		return errorResponse(ctx, http.StatusBadRequest, jwtservice.StatusInvalidToken)
-	}
-
+func (c *APIController) CreateUser(ctx *fiber.Ctx) error {
 	var req request.OperationUserRequest
 	if err := ctx.BodyParser(&req); err != nil {
+		log.Println(1, err)
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
 
@@ -48,38 +45,23 @@ func (c *APIController) UpdateUser(ctx *fiber.Ctx) error {
 	)
 
 	if err != nil {
+		log.Println(2, err)
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
 
-	err = c.userService.UpdateUser(ctx.Context(), entity.User{
-		UserID:   userID,
+	_, err = c.userService.CreateUser(ctx.Context(), entity.User{
 		Username: req.Username,
-		Email:    req.Email,
 		Password: string(hashedPassword),
+		Email:    req.Email,
 	})
 
 	if err != nil {
+		log.Println(3, err)
 		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
-
-	return ctx.Status(http.StatusOK).JSON(response.MessageResponse{
-		Message: response.MessageSuccsessfully,
-	})
-}
-
-func (c *APIController) DeleteUser(ctx *fiber.Ctx) error {
-	token := ctx.Get("Authorization")
-	userID, err := c.jwtS.GetUserID(token)
-	if err != nil {
-		return errorResponse(ctx, http.StatusBadRequest, jwtservice.StatusInvalidToken)
-	}
-
-	err = c.userService.DeleteUser(ctx.Context(), userID)
-	if err != nil {
-		return errorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
-	}
-
-	return ctx.Status(http.StatusOK).JSON(response.MessageResponse{
-		Message: response.MessageSuccsessfully,
+	return ctx.Status(http.StatusOK).JSON(response.CreateUserResponse{
+		Username: req.Username,
+		Password: req.Password,
+		Email:    req.Email,
 	})
 }
