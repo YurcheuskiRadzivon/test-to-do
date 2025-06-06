@@ -15,10 +15,12 @@ type Querier interface {
 	DeleteUser(ctx context.Context, id int) error
 	GetNote(ctx context.Context, arg GetNoteParams) (Note, error)
 	GetNotes(ctx context.Context, authorID int) ([]Note, error)
-	GetUser(ctx context.Context, id int) (User, error)
+	GetUser(ctx context.Context, id int) (GetUserRow, error)
+	GetUserLoginParams(ctx context.Context, username string) (GetUserLoginParamsRow, error)
 	GetUsers(ctx context.Context) ([]User, error)
 	UpdateNote(ctx context.Context, arg UpdateNoteParams) error
 	UpdateUser(ctx context.Context, arg UpdateUserParams) error
+	UserExistsByID(ctx context.Context, id int) (bool, error)
 }
 
 var _ Querier = (*Queries)(nil)

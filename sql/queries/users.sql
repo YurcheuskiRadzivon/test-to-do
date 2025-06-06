@@ -23,8 +23,16 @@ SET
 WHERE id = $1;
 
 -- name: GetUser :one
-SELECT * FROM users
+SELECT username,email FROM users
 WHERE id = $1;
 
 -- name: GetUsers :many
 SELECT * FROM users;
+
+-- name: GetUserLoginParams :one
+SELECT id, password 
+FROM users 
+WHERE username = $1;
+
+-- name: UserExistsByID :one
+SELECT EXISTS(SELECT 1 FROM users WHERE id = $1);

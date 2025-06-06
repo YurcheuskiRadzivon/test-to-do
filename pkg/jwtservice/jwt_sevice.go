@@ -38,19 +38,19 @@ func (jwts *JWTService) CreateToken(payload jwt.MapClaims) (string, error) {
 	return t, nil
 }
 
-func (jwts *JWTService) GetUserID(tokenString string) (string, error) {
+func (jwts *JWTService) GetUserID(tokenString string) (int, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return jwts.secretKey, nil
 	})
 
 	if err != nil {
-		return "", err
+		return -1, err
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		userID := claims["user_id"].(string)
-		return userID, nil
+		userID := claims["user_id"].(float64)
+		return int(userID), nil
 	}
 
-	return "", ErrInvalidToken
+	return -1, ErrInvalidToken
 }

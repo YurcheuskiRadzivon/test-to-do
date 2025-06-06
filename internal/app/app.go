@@ -14,6 +14,7 @@ import (
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/service"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/infrastructure/database/queries"
 	"github.com/YurcheuskiRadzivon/test-to-do/pkg/httpserver"
+	"github.com/YurcheuskiRadzivon/test-to-do/pkg/jwtservice"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	_ "github.com/lib/pq"
@@ -32,6 +33,8 @@ func Run(cfg *config.Config) {
 
 	q := queries.New(conn)
 
+	jwtS := jwtservice.New(cfg.JWT.SECRETKEY)
+
 	noteRepo := repositories.NewNoteRepo(q, conn)
 	userRepo := repositories.NewUserRepo(q, conn)
 
@@ -40,7 +43,7 @@ func Run(cfg *config.Config) {
 
 	httpserver := httpserver.New(cfg.HTTP.PORT)
 
-	http.NewRoute(httpserver.App, noteService, userService, cfg)
+	http.NewRoute(httpserver.App, noteService, userService, cfg, jwtS)
 
 	httpserver.Start()
 
