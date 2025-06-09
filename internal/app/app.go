@@ -10,6 +10,11 @@ import (
 
 	"github.com/YurcheuskiRadzivon/test-to-do/config"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http"
+	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/admin"
+	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/auth"
+	middleware "github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/middleware/auth"
+	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/note"
+	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/user"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/repositories"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/service"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/infrastructure/database/queries"
@@ -22,6 +27,7 @@ import (
 )
 
 func Run(cfg *config.Config) {
+	//PG
 	if err := migrate(cfg.PG.URL); err != nil {
 		log.Fatalf("migrate: %v", err)
 	}
@@ -33,17 +39,38 @@ func Run(cfg *config.Config) {
 
 	q := queries.New(conn)
 
+	//JWT
+
 	jwtS := jwtservice.New(cfg.JWT.SECRETKEY)
 
+	//Repo
 	noteRepo := repositories.NewNoteRepo(q, conn)
 	userRepo := repositories.NewUserRepo(q, conn)
 
+	//Service
 	noteService := service.NewNoteService(noteRepo)
 	userService := service.NewUserService(userRepo)
 
+	//Middleware
+	authMiddleware := middleware.NewAuthMW(userService, jwtS, cfg)
+
+	//Controller
+	authController := auth.NewAuthControl(userService, jwtS)
+	userController := user.NewUserControl(userService, jwtS)
+	adminController := admin.NewAdminControl(userService, jwtS)
+	noteController := note.NewNoteControl(noteService, jwtS)
+
 	httpserver := httpserver.New(cfg.HTTP.PORT)
 
-	http.NewRoute(httpserver.App, noteService, userService, cfg, jwtS)
+	http.NewRoute(
+		httpserver.App,
+		noteController,
+		userController,
+		adminController,
+		authController,
+		authMiddleware,
+		cfg,
+	)
 
 	httpserver.Start()
 
