@@ -4,25 +4,32 @@ import (
 	"fmt"
 
 	"github.com/YurcheuskiRadzivon/test-to-do/config"
-	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/service"
-	"github.com/YurcheuskiRadzivon/test-to-do/pkg/jwtservice"
+	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/admin"
+	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/auth"
+	middleware "github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/middleware/auth"
+	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/note"
+	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/user"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/swagger"
 )
 
 func NewRoute(
 	app *fiber.App,
-	noteService *service.NoteService,
-	userService *service.UserService,
+	noteController note.NoteController,
+	userController user.UserController,
+	adminController admin.AdminController,
+	authController auth.AuthController,
+	authMiddleware middleware.AuthMiddleware,
 	cfg *config.Config,
-	jwtS *jwtservice.JWTService,
 ) {
-	APIController := &APIController{
-		app:         app,
-		noteService: noteService,
-		userService: userService,
-		jwtS:        jwtS,
-		cfg:         cfg,
+	APIC := &APIController{
+		app:             app,
+		noteController:  noteController,
+		userController:  userController,
+		adminController: adminController,
+		authController:  authController,
+		authMiddleware:  authMiddleware,
+		cfg:             cfg,
 	}
 
 	app.Static("/swagger/swagger.yaml", "./docs/swagger.yaml")
@@ -35,32 +42,32 @@ func NewRoute(
 
 	authGroup := app.Group("/auth")
 	{
-		authGroup.Post("/login", APIController.Login)
+		authGroup.Post("/login", APIC.authController.Login)
 	}
 
 	adminGroup := app.Group("/admin")
 	{
-		adminGroup.Use(APIController.AuthAdminMiddleware)
-		adminGroup.Get("/users", APIController.GetUsers)
-		adminGroup.Post("/user", APIController.CreateUser)
+		adminGroup.Use(APIC.authMiddleware.AuthAdminMiddleware)
+		adminGroup.Get("/users", APIC.adminController.GetUsers)
+		adminGroup.Post("/user", APIC.adminController.CreateUser)
 	}
 
 	userGroup := app.Group("/account")
 	{
-		userGroup.Use(APIController.AuthMiddleware)
-		userGroup.Get("/user", APIController.GetUser)
-		userGroup.Delete("/user", APIController.DeleteUser)
-		userGroup.Put("/user", APIController.UpdateUser)
+		userGroup.Use(APIC.authMiddleware.AuthUserMiddleware)
+		userGroup.Get("/user", APIC.userController.GetUser)
+		userGroup.Delete("/user", APIC.userController.DeleteUser)
+		userGroup.Put("/user", APIC.userController.UpdateUser)
 	}
 
 	noteGroup := app.Group("/manage")
 	{
-		noteGroup.Use(APIController.AuthMiddleware)
-		noteGroup.Get("/note/:id", APIController.GetNote)
-		noteGroup.Get("/notes", APIController.GetNotes)
-		noteGroup.Post("/note", APIController.CreateNote)
-		noteGroup.Delete("/note/:id", APIController.DeleteNote)
-		noteGroup.Put("/note/:id", APIController.UpdateNote)
+		noteGroup.Use(APIC.authMiddleware.AuthUserMiddleware)
+		noteGroup.Get("/note/:id", APIC.noteController.GetNote)
+		noteGroup.Get("/notes", APIC.noteController.GetNotes)
+		noteGroup.Post("/note", APIC.noteController.CreateNote)
+		noteGroup.Delete("/note/:id", APIC.noteController.DeleteNote)
+		noteGroup.Put("/note/:id", APIC.noteController.UpdateNote)
 	}
 
 }
