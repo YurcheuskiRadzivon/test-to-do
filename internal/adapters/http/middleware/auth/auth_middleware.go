@@ -6,10 +6,10 @@ import (
 
 	"github.com/YurcheuskiRadzivon/test-to-do/config"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/response"
+	authmanage "github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/managers/auth"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/service"
 	"github.com/YurcheuskiRadzivon/test-to-do/pkg/jwtservice"
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt"
 )
 
 type AuthMiddleware interface {
@@ -18,37 +18,33 @@ type AuthMiddleware interface {
 }
 
 type AuthMW struct {
+	authManager authmanage.AuthManager
 	userService *service.UserService
-	jwtS        *jwtservice.JWTService
 	cfg         *config.Config
 }
 
 func NewAuthMW(
+	authManager authmanage.AuthManager,
 	userService *service.UserService,
-	jwtS *jwtservice.JWTService,
 	cfg *config.Config,
 ) *AuthMW {
 	return &AuthMW{
+		authManager: authManager,
 		userService: userService,
-		jwtS:        jwtS,
 		cfg:         cfg,
 	}
 }
 
 func (am *AuthMW) AuthUserMiddleware(ctx *fiber.Ctx) error {
-	tokenString := ctx.Get(jwtservice.HeaderAuthorization)
+	err := am.authManager.Validate(ctx)
 
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return am.jwtS.GetJwtSecretKey(), nil
-	})
-
-	if err != nil || !token.Valid {
+	if err != nil {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error": "Invalid or expired token",
 		})
 	}
 
-	userID, err := am.jwtS.GetUserID(tokenString)
+	userID, err := am.authManager.GetUserID(ctx)
 	if err != nil {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, jwtservice.StatusInvalidToken)
 	}
@@ -68,19 +64,15 @@ func (am *AuthMW) AuthUserMiddleware(ctx *fiber.Ctx) error {
 }
 
 func (am *AuthMW) AuthAdminMiddleware(ctx *fiber.Ctx) error {
-	tokenString := ctx.Get(jwtservice.HeaderAuthorization)
+	err := am.authManager.Validate(ctx)
 
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return am.jwtS.GetJwtSecretKey(), nil
-	})
-
-	if err != nil || !token.Valid {
+	if err != nil {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error": "Invalid or expired token",
 		})
 	}
 
-	userID, err := am.jwtS.GetUserID(tokenString)
+	userID, err := am.authManager.GetUserID(ctx)
 	if err != nil {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, jwtservice.StatusInvalidToken)
 	}

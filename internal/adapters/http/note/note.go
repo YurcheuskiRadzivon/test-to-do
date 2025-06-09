@@ -7,6 +7,8 @@ import (
 
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/request"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/response"
+	authmanage "github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/managers/auth"
+	encryptmanage "github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/managers/encrypt"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/entity"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/service"
 	"github.com/YurcheuskiRadzivon/test-to-do/pkg/jwtservice"
@@ -22,24 +24,26 @@ type NoteController interface {
 }
 
 type NoteControl struct {
-	noteService *service.NoteService
-	jwtS        *jwtservice.JWTService
+	noteService    *service.NoteService
+	authManager    authmanage.AuthManager
+	encryptManager encryptmanage.EncryptManager
 }
 
 func NewNoteControl(
 	noteService *service.NoteService,
-	jwtS *jwtservice.JWTService,
+	authManager authmanage.AuthManager,
+	encryptManager encryptmanage.EncryptManager,
+
 ) *NoteControl {
 	return &NoteControl{
-		noteService: noteService,
-		jwtS:        jwtS,
+		noteService:    noteService,
+		authManager:    authManager,
+		encryptManager: encryptManager,
 	}
 }
 
 func (nc *NoteControl) GetNotes(ctx *fiber.Ctx) error {
-	token := ctx.Get(jwtservice.HeaderAuthorization)
-
-	userID, err := nc.jwtS.GetUserID(token)
+	userID, err := nc.authManager.GetUserID(ctx)
 	if err != nil {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, jwtservice.StatusInvalidToken)
 	}
@@ -51,9 +55,7 @@ func (nc *NoteControl) GetNotes(ctx *fiber.Ctx) error {
 }
 
 func (nc *NoteControl) GetNote(ctx *fiber.Ctx) error {
-	token := ctx.Get(jwtservice.HeaderAuthorization)
-
-	userID, err := nc.jwtS.GetUserID(token)
+	userID, err := nc.authManager.GetUserID(ctx)
 	if err != nil {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, jwtservice.StatusInvalidToken)
 	}
@@ -70,9 +72,7 @@ func (nc *NoteControl) GetNote(ctx *fiber.Ctx) error {
 }
 
 func (nc *NoteControl) CreateNote(ctx *fiber.Ctx) error {
-	token := ctx.Get(jwtservice.HeaderAuthorization)
-
-	userID, err := nc.jwtS.GetUserID(token)
+	userID, err := nc.authManager.GetUserID(ctx)
 	if err != nil {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, jwtservice.StatusInvalidToken)
 	}
@@ -101,9 +101,7 @@ func (nc *NoteControl) CreateNote(ctx *fiber.Ctx) error {
 }
 
 func (nc *NoteControl) UpdateNote(ctx *fiber.Ctx) error {
-	token := ctx.Get(jwtservice.HeaderAuthorization)
-
-	userID, err := nc.jwtS.GetUserID(token)
+	userID, err := nc.authManager.GetUserID(ctx)
 	if err != nil {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, jwtservice.StatusInvalidToken)
 	}
@@ -136,9 +134,7 @@ func (nc *NoteControl) UpdateNote(ctx *fiber.Ctx) error {
 }
 
 func (nc *NoteControl) DeleteNote(ctx *fiber.Ctx) error {
-	token := ctx.Get(jwtservice.HeaderAuthorization)
-
-	userID, err := nc.jwtS.GetUserID(token)
+	userID, err := nc.authManager.GetUserID(ctx)
 	if err != nil {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, jwtservice.StatusInvalidToken)
 	}

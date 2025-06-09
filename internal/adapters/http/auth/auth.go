@@ -5,15 +5,14 @@ import (
 
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/request"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/response"
+	authmanage "github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/managers/auth"
+	encryptmanage "github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/managers/encrypt"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/service"
-	"github.com/YurcheuskiRadzivon/test-to-do/pkg/jwtservice"
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt"
-	"golang.org/x/crypto/bcrypt"
 )
 
 const (
-	userIDHeader      = "user_id"
+	UserIDHeader      = "user_id"
 	ErrNotImplemented = "NOT_IMPLEMENTED"
 )
 
@@ -23,17 +22,20 @@ type AuthController interface {
 }
 
 type AuthControl struct {
-	userService *service.UserService
-	jwtS        *jwtservice.JWTService
+	userService    *service.UserService
+	authManager    authmanage.AuthManager
+	encryptManager encryptmanage.EncryptManager
 }
 
 func NewAuthControl(
 	userService *service.UserService,
-	jwtS *jwtservice.JWTService,
+	authManager authmanage.AuthManager,
+	encryptManager encryptmanage.EncryptManager,
 ) *AuthControl {
 	return &AuthControl{
-		userService: userService,
-		jwtS:        jwtS,
+		userService:    userService,
+		authManager:    authManager,
+		encryptManager: encryptManager,
 	}
 }
 
@@ -48,26 +50,12 @@ func (ac *AuthControl) Login(ctx *fiber.Ctx) error {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
 
-	err = bcrypt.CompareHashAndPassword(
-		[]byte(hashedPassword),
-		[]byte(req.Password),
-	)
-	if err != nil {
+	if ac.encryptManager.CheckPassword(req.Password, hashedPassword); err != nil {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
 
-	payload := jwt.MapClaims{
-		userIDHeader: userID,
-	}
+	return ac.authManager.CreateAuthResponse(ctx, userID)
 
-	token, err := ac.jwtS.CreateToken(payload)
-	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrJWT)
-	}
-
-	return ctx.Status(http.StatusOK).JSON(response.LoginResponse{
-		Token: token,
-	})
 }
 
 func (ac *AuthControl) Register(ctx *fiber.Ctx) error {

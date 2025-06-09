@@ -15,6 +15,8 @@ import (
 	middleware "github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/middleware/auth"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/note"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/user"
+	authmanage "github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/managers/auth"
+	encryptmanage "github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/managers/encrypt"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/repositories"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/service"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/infrastructure/database/queries"
@@ -43,6 +45,11 @@ func Run(cfg *config.Config) {
 
 	jwtS := jwtservice.New(cfg.JWT.SECRETKEY)
 
+	//Managers
+	authManager := authmanage.NewAuthManage(jwtS)
+	encryptManager := encryptmanage.NewEncrypter()
+	_ = encryptManager
+
 	//Repo
 	noteRepo := repositories.NewNoteRepo(q, conn)
 	userRepo := repositories.NewUserRepo(q, conn)
@@ -52,13 +59,13 @@ func Run(cfg *config.Config) {
 	userService := service.NewUserService(userRepo)
 
 	//Middleware
-	authMiddleware := middleware.NewAuthMW(userService, jwtS, cfg)
+	authMiddleware := middleware.NewAuthMW(authManager, userService, cfg)
 
 	//Controller
-	authController := auth.NewAuthControl(userService, jwtS)
-	userController := user.NewUserControl(userService, jwtS)
-	adminController := admin.NewAdminControl(userService, jwtS)
-	noteController := note.NewNoteControl(noteService, jwtS)
+	authController := auth.NewAuthControl(userService, authManager, encryptManager)
+	userController := user.NewUserControl(userService, authManager, encryptManager)
+	adminController := admin.NewAdminControl(userService, authManager, encryptManager)
+	noteController := note.NewNoteControl(noteService, authManager, encryptManager)
 
 	httpserver := httpserver.New(cfg.HTTP.PORT)
 

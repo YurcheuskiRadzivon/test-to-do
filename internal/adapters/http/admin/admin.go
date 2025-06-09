@@ -5,11 +5,12 @@ import (
 
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/request"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/response"
+	authmanage "github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/managers/auth"
+	encryptmanage "github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/managers/encrypt"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/entity"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/service"
 	"github.com/YurcheuskiRadzivon/test-to-do/pkg/jwtservice"
 	"github.com/gofiber/fiber/v2"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type AdminController interface {
@@ -18,24 +19,25 @@ type AdminController interface {
 }
 
 type AdminControl struct {
-	userService *service.UserService
-	jwtS        *jwtservice.JWTService
+	userService    *service.UserService
+	authManager    authmanage.AuthManager
+	encryptManager encryptmanage.EncryptManager
 }
 
 func NewAdminControl(
 	userService *service.UserService,
-	jwtS *jwtservice.JWTService,
+	authManager authmanage.AuthManager,
+	encryptManager encryptmanage.EncryptManager,
 ) *AdminControl {
 	return &AdminControl{
-		userService: userService,
-		jwtS:        jwtS,
+		userService:    userService,
+		authManager:    authManager,
+		encryptManager: encryptManager,
 	}
 }
 
 func (ac *AdminControl) GetUsers(ctx *fiber.Ctx) error {
-	token := ctx.Get(jwtservice.HeaderAuthorization)
-
-	userID, err := ac.jwtS.GetUserID(token)
+	userID, err := ac.authManager.GetUserID(ctx)
 	if err != nil {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, jwtservice.StatusInvalidToken)
 	}
@@ -58,10 +60,7 @@ func (ac *AdminControl) CreateUser(ctx *fiber.Ctx) error {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword(
-		[]byte(req.Password),
-		bcrypt.DefaultCost,
-	)
+	hashedPassword, err := ac.encryptManager.EncodePassword(req.Password)
 
 	if err != nil {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
