@@ -65,7 +65,7 @@ func Run(cfg *config.Config) {
 	authController := auth.NewAuthControl(userService, authManager, encryptManager)
 	userController := user.NewUserControl(userService, authManager, encryptManager)
 	adminController := admin.NewAdminControl(userService, authManager, encryptManager)
-	noteController := note.NewNoteControl(noteService, authManager, encryptManager)
+	noteController := note.NewNoteControl(noteService, authManager)
 
 	httpserver := httpserver.New(cfg.HTTP.PORT)
 
