@@ -6,11 +6,15 @@ import (
 
 	"github.com/YurcheuskiRadzivon/test-to-do/config"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/response"
-	authmanage "github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/managers/auth"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/service"
 	"github.com/YurcheuskiRadzivon/test-to-do/pkg/jwtservice"
 	"github.com/gofiber/fiber/v2"
 )
+
+type AuthManager interface {
+	GetUserID(ctx *fiber.Ctx) (int, error)
+	Validate(ctx *fiber.Ctx) error
+}
 
 type AuthMiddleware interface {
 	AuthUserMiddleware(ctx *fiber.Ctx) error
@@ -18,13 +22,13 @@ type AuthMiddleware interface {
 }
 
 type AuthMW struct {
-	authManager authmanage.AuthManager
+	authManager AuthManager
 	userService *service.UserService
 	cfg         *config.Config
 }
 
 func NewAuthMW(
-	authManager authmanage.AuthManager,
+	authManager AuthManager,
 	userService *service.UserService,
 	cfg *config.Config,
 ) *AuthMW {

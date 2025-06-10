@@ -5,8 +5,6 @@ import (
 
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/request"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/response"
-	authmanage "github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/managers/auth"
-	encryptmanage "github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/managers/encrypt"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/service"
 	"github.com/gofiber/fiber/v2"
 )
@@ -16,6 +14,14 @@ const (
 	ErrNotImplemented = "NOT_IMPLEMENTED"
 )
 
+type AuthManager interface {
+	CreateAuthResponse(ctx *fiber.Ctx, id int) error
+}
+
+type EncryptManager interface {
+	CheckPassword(password, hashedPassword string) error
+}
+
 type AuthController interface {
 	Login(ctx *fiber.Ctx) error
 	Register(ctx *fiber.Ctx) error
@@ -23,14 +29,14 @@ type AuthController interface {
 
 type AuthControl struct {
 	userService    *service.UserService
-	authManager    authmanage.AuthManager
-	encryptManager encryptmanage.EncryptManager
+	authManager    AuthManager
+	encryptManager EncryptManager
 }
 
 func NewAuthControl(
 	userService *service.UserService,
-	authManager authmanage.AuthManager,
-	encryptManager encryptmanage.EncryptManager,
+	authManager AuthManager,
+	encryptManager EncryptManager,
 ) *AuthControl {
 	return &AuthControl{
 		userService:    userService,

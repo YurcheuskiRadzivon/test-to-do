@@ -7,13 +7,15 @@ import (
 
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/request"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/response"
-	authmanage "github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/managers/auth"
-	encryptmanage "github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/managers/encrypt"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/entity"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/service"
 	"github.com/YurcheuskiRadzivon/test-to-do/pkg/jwtservice"
 	"github.com/gofiber/fiber/v2"
 )
+
+type AuthManager interface {
+	GetUserID(ctx *fiber.Ctx) (int, error)
+}
 
 type NoteController interface {
 	GetNotes(ctx *fiber.Ctx) error
@@ -24,21 +26,17 @@ type NoteController interface {
 }
 
 type NoteControl struct {
-	noteService    *service.NoteService
-	authManager    authmanage.AuthManager
-	encryptManager encryptmanage.EncryptManager
+	noteService *service.NoteService
+	authManager AuthManager
 }
 
 func NewNoteControl(
 	noteService *service.NoteService,
-	authManager authmanage.AuthManager,
-	encryptManager encryptmanage.EncryptManager,
-
+	authManager AuthManager,
 ) *NoteControl {
 	return &NoteControl{
-		noteService:    noteService,
-		authManager:    authManager,
-		encryptManager: encryptManager,
+		noteService: noteService,
+		authManager: authManager,
 	}
 }
 
