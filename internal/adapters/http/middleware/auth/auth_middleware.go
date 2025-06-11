@@ -1,15 +1,19 @@
 package middleware
 
 import (
+	"context"
 	"log"
 	"net/http"
 
 	"github.com/YurcheuskiRadzivon/test-to-do/config"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/response"
-	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/service"
 	"github.com/YurcheuskiRadzivon/test-to-do/pkg/jwtservice"
 	"github.com/gofiber/fiber/v2"
 )
+
+type UserService interface {
+	UserExistsByID(ctx context.Context, userID int) (bool, error)
+}
 
 type AuthManager interface {
 	GetUserID(ctx *fiber.Ctx) (int, error)
@@ -23,13 +27,13 @@ type AuthMiddleware interface {
 
 type AuthMW struct {
 	authManager AuthManager
-	userService *service.UserService
+	userService UserService
 	cfg         *config.Config
 }
 
 func NewAuthMW(
 	authManager AuthManager,
-	userService *service.UserService,
+	userService UserService,
 	cfg *config.Config,
 ) *AuthMW {
 	return &AuthMW{

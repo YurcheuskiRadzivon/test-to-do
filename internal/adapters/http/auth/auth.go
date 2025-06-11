@@ -1,11 +1,11 @@
 package auth
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/request"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/response"
-	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/service"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -13,6 +13,10 @@ const (
 	UserIDHeader      = "user_id"
 	ErrNotImplemented = "NOT_IMPLEMENTED"
 )
+
+type UserService interface {
+	GetUserLoginParams(ctx context.Context, username string) (int, string, error)
+}
 
 type AuthManager interface {
 	CreateAuthResponse(ctx *fiber.Ctx, id int) error
@@ -28,13 +32,13 @@ type AuthController interface {
 }
 
 type AuthControl struct {
-	userService    *service.UserService
+	userService    UserService
 	authManager    AuthManager
 	encryptManager EncryptManager
 }
 
 func NewAuthControl(
-	userService *service.UserService,
+	userService UserService,
 	authManager AuthManager,
 	encryptManager EncryptManager,
 ) *AuthControl {
