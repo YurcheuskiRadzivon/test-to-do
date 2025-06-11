@@ -1,12 +1,12 @@
 package admin
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/request"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/response"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/entity"
-	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/service"
 	"github.com/YurcheuskiRadzivon/test-to-do/pkg/jwtservice"
 	"github.com/gofiber/fiber/v2"
 )
@@ -19,19 +19,25 @@ type EncryptManager interface {
 	EncodePassword(password string) (string, error)
 }
 
+type UserService interface {
+	GetUsers(ctx context.Context) ([]entity.User, error)
+	CreateUser(ctx context.Context, user entity.User) (int, error)
+}
+
+//mockgen:ignore
 type AdminController interface {
 	GetUsers(ctx *fiber.Ctx) error
 	CreateUser(ctx *fiber.Ctx) error
 }
 
 type AdminControl struct {
-	userService    *service.UserService
+	userService    UserService
 	authManager    AuthManager
 	encryptManager EncryptManager
 }
 
 func NewAdminControl(
-	userService *service.UserService,
+	userService UserService,
 	authManager AuthManager,
 	encryptManager EncryptManager,
 ) *AdminControl {
