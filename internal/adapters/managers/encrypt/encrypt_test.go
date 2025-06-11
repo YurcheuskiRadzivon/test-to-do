@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestEncodePassword(t *testing.T) {
+func TestEncodePassword_Unit(t *testing.T) {
 	em := encryptmanage.NewEncrypter()
 
 	cases := []struct {
@@ -36,7 +36,7 @@ func TestEncodePassword(t *testing.T) {
 
 }
 
-func TestCheckPasswordValid(t *testing.T) {
+func TestCheckPasswordValid_Unit(t *testing.T) {
 	em := encryptmanage.NewEncrypter()
 
 	cases := []struct {
@@ -85,7 +85,7 @@ func TestCheckPasswordValid(t *testing.T) {
 
 }
 
-func TestCheckPasswordInvalid(t *testing.T) {
+func TestCheckPasswordInvalid_Unit(t *testing.T) {
 	em := encryptmanage.NewEncrypter()
 
 	cases := []struct {

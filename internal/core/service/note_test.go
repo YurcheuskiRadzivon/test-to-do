@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUpdateNoteInvalid(t *testing.T) {
+func TestUpdateNoteInvalid_Unit(t *testing.T) {
 	cntrl := gomock.NewController(t)
 	defer cntrl.Finish()
 
@@ -66,7 +66,7 @@ func TestUpdateNoteInvalid(t *testing.T) {
 
 }
 
-func TestUpdateNoteValid(t *testing.T) {
+func TestUpdateNoteValid_Unit(t *testing.T) {
 	cntrl := gomock.NewController(t)
 	defer cntrl.Finish()
 
@@ -119,7 +119,7 @@ func TestUpdateNoteValid(t *testing.T) {
 
 }
 
-func TestDeleteNoteInvalid(t *testing.T) {
+func TestDeleteNoteInvalid_Unit(t *testing.T) {
 	cntrl := gomock.NewController(t)
 	defer cntrl.Finish()
 
@@ -155,7 +155,7 @@ func TestDeleteNoteInvalid(t *testing.T) {
 
 }
 
-func TestDeleteValid(t *testing.T) {
+func TestDeleteValid_Unit(t *testing.T) {
 	cntrl := gomock.NewController(t)
 	defer cntrl.Finish()
 
@@ -192,7 +192,7 @@ func TestDeleteValid(t *testing.T) {
 
 }
 
-func TestCheckStatusInvalid(t *testing.T) {
+func TestCheckStatusInvalid_Unit(t *testing.T) {
 	cases := []struct {
 		name string
 		in   string
