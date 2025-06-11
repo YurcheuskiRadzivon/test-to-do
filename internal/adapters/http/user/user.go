@@ -1,15 +1,21 @@
 package user
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/request"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/response"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/entity"
-	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/service"
 	"github.com/YurcheuskiRadzivon/test-to-do/pkg/jwtservice"
 	"github.com/gofiber/fiber/v2"
 )
+
+type UserService interface {
+	GetUser(ctx context.Context, userID int) (string, string, error)
+	UpdateUser(ctx context.Context, user entity.User) error
+	DeleteUser(ctx context.Context, userID int) error
+}
 
 type AuthManager interface {
 	GetUserID(ctx *fiber.Ctx) (int, error)
@@ -26,13 +32,13 @@ type UserController interface {
 }
 
 type UserControl struct {
-	userService    *service.UserService
+	userService    UserService
 	authManager    AuthManager
 	encryptManager EncryptManager
 }
 
 func NewUserControl(
-	userService *service.UserService,
+	userService UserService,
 	authManager AuthManager,
 	encryptManager EncryptManager,
 ) *UserControl {
