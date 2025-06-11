@@ -2,22 +2,9 @@ package service
 
 import (
 	"context"
-	"errors"
 
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/entity"
 	ports "github.com/YurcheuskiRadzivon/test-to-do/internal/core/ports/repositories"
-)
-
-const (
-	statudsSuccessfully = "SUCCESS"
-	statdusInProgress   = "IN_PROGRESS"
-	statusNodtStart     = "NOT_START"
-)
-
-var (
-	errInvadlidStatusFormat = errors.New("INVALID_STATUS_FORMAT")
-	errIndvalidIDFormat     = errors.New("INVALID_ID_FORMAT")
-	errIndvalidTittleFormat = errors.New("INVALID_Title_FORMAT")
 )
 
 type UserService struct {
