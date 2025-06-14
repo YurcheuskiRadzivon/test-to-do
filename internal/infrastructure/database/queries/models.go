@@ -4,12 +4,26 @@
 
 package queries
 
-type Note struct {
+import (
+	"github.com/jackc/pgx/v5/pgtype"
+)
+
+type Filemeta struct {
 	ID          int    `json:"id"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Status      string `json:"status"`
-	AuthorID    int    `json:"author_id"`
+	ContentType string `json:"content_type"`
+	OwnerType   string `json:"owner_type"`
+	OwnerID     int    `json:"owner_id"`
+	UserID      int    `json:"user_id"`
+	Uri         string `json:"uri"`
+}
+
+type Note struct {
+	ID          int         `json:"id"`
+	Title       string      `json:"title"`
+	Description string      `json:"description"`
+	Status      string      `json:"status"`
+	AuthorID    int         `json:"author_id"`
+	HasFiles    pgtype.Bool `json:"has_files"`
 }
 
 type User struct {

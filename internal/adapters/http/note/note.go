@@ -1,6 +1,7 @@
 package note
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"strconv"
@@ -15,6 +16,10 @@ import (
 
 type AuthManager interface {
 	GetUserID(ctx *fiber.Ctx) (int, error)
+}
+
+type FileMetaService interface {
+	CreateFileMeta(ctx context.Context, fileMeta entity.FileMeta) error
 }
 
 type NoteController interface {
@@ -77,19 +82,30 @@ func (nc *NoteControl) CreateNote(ctx *fiber.Ctx) error {
 
 	var req request.OperationNoteRequest
 	if err := ctx.BodyParser(&req); err != nil {
-		log.Println(err)
 		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
 
-	err = nc.noteService.CreateNote(ctx.Context(), entity.Note{
-		Title:       req.Title,
-		Description: req.Description,
-		Status:      req.Status,
+	title := ctx.FormValue("title")
+	description := ctx.FormValue("description")
+	status := ctx.FormValue("status")
+
+	form, err := ctx.MultipartForm()
+	if err != nil {
+		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+	}
+
+	files := form.File["[]files"]
+
+	log.Println(len(files))
+
+	_, err = nc.noteService.CreateNote(ctx.Context(), entity.Note{
+		Title:       title,
+		Description: description,
+		Status:      status,
 		AuthorID:    userID,
 	})
 
 	if err != nil {
-		log.Println(err)
 		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
 

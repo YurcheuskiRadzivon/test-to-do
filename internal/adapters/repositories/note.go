@@ -20,12 +20,12 @@ func NewNoteRepo(db *queries.Queries, pool *pgxpool.Pool) *NoteRepo {
 	}
 }
 
-func (nr *NoteRepo) CreateNote(ctx context.Context, note entity.Note) error {
+func (nr *NoteRepo) CreateNote(ctx context.Context, note entity.Note) (int, error) {
 	return nr.queries.CreateNote(ctx, queries.CreateNoteParams{
 		Title:       note.Title,
 		Description: note.Description,
 		Status:      note.Status,
-		UserID:      note.AuthorID,
+		AuthorID:    note.AuthorID,
 	})
 }
 

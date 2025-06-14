@@ -28,6 +28,7 @@ func New(port string) *Server {
 	}
 
 	app := fiber.New(fiber.Config{
+		BodyLimit:    30 * 1024 * 1024,
 		ReadTimeout:  _defaultReadTimeout,
 		WriteTimeout: _defaultWriteTimeout,
 		JSONEncoder:  json.Marshal,
