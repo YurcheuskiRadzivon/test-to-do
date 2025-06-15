@@ -28,8 +28,12 @@ func NewNoteService(repo ports.NoteRepository) *NoteService {
 	return &NoteService{repo: repo}
 }
 
-func (s *NoteService) CreateNote(ctx context.Context, note entity.Note) error {
-	return s.repo.CreateNote(ctx, note)
+func (s *NoteService) CreateNote(ctx context.Context, note entity.Note) (int, error) {
+	id, err := s.repo.CreateNote(ctx, note)
+	if err != nil {
+		return 0, err
+	}
+	return id, nil
 }
 
 func (s *NoteService) GetNote(ctx context.Context, noteID int, authorID int) (entity.Note, error) {

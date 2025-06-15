@@ -9,31 +9,36 @@ import (
 	"context"
 )
 
-const createNote = `-- name: CreateNote :exec
+const createNote = `-- name: CreateNote :one
 WITH inserted_note AS (
     INSERT INTO notes (title, description, status, author_id)
     VALUES ($1, $2, $3, $4)
     RETURNING id
+),
+usersnotes_insert AS (
+    INSERT INTO usersnotes (user_id, note_id)
+    SELECT $4, inserted_note.id FROM inserted_note
 )
-INSERT INTO usersnotes (user_id, note_id)
-SELECT $4, inserted_note.id FROM inserted_note
+SELECT id FROM inserted_note
 `
 
 type CreateNoteParams struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Status      string `json:"status"`
-	UserID      int    `json:"user_id"`
+	AuthorID    int    `json:"author_id"`
 }
 
-func (q *Queries) CreateNote(ctx context.Context, arg CreateNoteParams) error {
-	_, err := q.db.Exec(ctx, createNote,
+func (q *Queries) CreateNote(ctx context.Context, arg CreateNoteParams) (int, error) {
+	row := q.db.QueryRow(ctx, createNote,
 		arg.Title,
 		arg.Description,
 		arg.Status,
-		arg.UserID,
+		arg.AuthorID,
 	)
-	return err
+	var id int
+	err := row.Scan(&id)
+	return id, err
 }
 
 const deleteNote = `-- name: DeleteNote :exec

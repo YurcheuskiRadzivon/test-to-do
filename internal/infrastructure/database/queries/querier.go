@@ -9,10 +9,18 @@ import (
 )
 
 type Querier interface {
-	CreateNote(ctx context.Context, arg CreateNoteParams) error
+	CreateFileMeta(ctx context.Context, arg CreateFileMetaParams) error
+	CreateNote(ctx context.Context, arg CreateNoteParams) (int, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (int, error)
+	DeleteFileMetaByID(ctx context.Context, id int) error
+	DeleteFileMetaByNoteID(ctx context.Context, arg DeleteFileMetaByNoteIDParams) error
 	DeleteNote(ctx context.Context, arg DeleteNoteParams) error
 	DeleteUser(ctx context.Context, id int) error
+	FileMetasExistsByIDAndUserID(ctx context.Context, arg FileMetasExistsByIDAndUserIDParams) (bool, error)
+	GetFileMetaByID(ctx context.Context, id int) (GetFileMetaByIDRow, error)
+	GetFileMetaIDByID(ctx context.Context, arg GetFileMetaIDByIDParams) ([]int, error)
+	GetFileMetaURI(ctx context.Context, id int) (string, error)
+	GetFileMetas(ctx context.Context) ([]Filemeta, error)
 	GetNote(ctx context.Context, arg GetNoteParams) (Note, error)
 	GetNotes(ctx context.Context, authorID int) ([]Note, error)
 	GetUser(ctx context.Context, id int) (GetUserRow, error)

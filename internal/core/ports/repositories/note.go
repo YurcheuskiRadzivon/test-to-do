@@ -7,7 +7,7 @@ import (
 )
 
 type NoteRepository interface {
-	CreateNote(ctx context.Context, note entity.Note) error
+	CreateNote(ctx context.Context, note entity.Note) (int, error)
 	DeleteNote(ctx context.Context, noteID int, authorID int) error
 	GetNote(ctx context.Context, noteID int, authorID int) (entity.Note, error)
 	GetNotes(ctx context.Context, authorID int) ([]entity.Note, error)

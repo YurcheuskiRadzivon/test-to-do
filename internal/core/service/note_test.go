@@ -7,8 +7,8 @@ import (
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/entity"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/service"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/service/mock"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 )
 
 func TestUpdateNoteInvalid_Unit(t *testing.T) {

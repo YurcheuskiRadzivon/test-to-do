@@ -1,4 +1,4 @@
--- +goose Up
+-- +migrate Up
 CREATE TABLE notes (
     note_id SERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,

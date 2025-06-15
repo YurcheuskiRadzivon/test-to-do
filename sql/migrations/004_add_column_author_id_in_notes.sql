@@ -1,4 +1,4 @@
--- +goose Up
+-- +migrate Up
 ALTER TABLE notes 
 ADD COLUMN author_id INT NOT NULL DEFAULT 0;
 

@@ -4,6 +4,15 @@
 
 package queries
 
+type Filemeta struct {
+	ID          int    `json:"id"`
+	ContentType string `json:"content_type"`
+	OwnerType   string `json:"owner_type"`
+	OwnerID     int    `json:"owner_id"`
+	UserID      int    `json:"user_id"`
+	Uri         string `json:"uri"`
+}
+
 type Note struct {
 	ID          int    `json:"id"`
 	Title       string `json:"title"`

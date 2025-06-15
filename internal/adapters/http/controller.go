@@ -4,6 +4,7 @@ import (
 	"github.com/YurcheuskiRadzivon/test-to-do/config"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/admin"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/auth"
+	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/file"
 	middleware "github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/middleware/auth"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/note"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/user"
@@ -17,5 +18,6 @@ type APIController struct {
 	adminController admin.AdminController
 	authController  auth.AuthController
 	authMiddleware  middleware.AuthMiddleware
+	fileController  file.FileController
 	cfg             *config.Config
 }
