@@ -13,11 +13,13 @@ import (
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/admin"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/auth"
+	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/file"
 	middleware "github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/middleware/auth"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/note"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/user"
 	authmanage "github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/managers/auth"
 	encryptmanage "github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/managers/encrypt"
+	filemanage "github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/managers/file"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/repositories"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/service"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/infrastructure/database/queries"
@@ -49,15 +51,17 @@ func Run(cfg *config.Config) {
 	//Managers
 	authManager := authmanage.NewAuthManage(jwtS)
 	encryptManager := encryptmanage.NewEncrypter()
-	_ = encryptManager
+	fileManager := filemanage.NewFileManage()
 
 	//Repo
 	noteRepo := repositories.NewNoteRepo(q, conn)
 	userRepo := repositories.NewUserRepo(q, conn)
+	fileMetaRepo := repositories.NewFileMetaRepo(q, conn)
 
 	//Service
 	noteService := service.NewNoteService(noteRepo)
 	userService := service.NewUserService(userRepo)
+	fileMetaService := service.NewFileMetaService(fileMetaRepo)
 
 	//Middleware
 	authMiddleware := middleware.NewAuthMW(authManager, userService, cfg)
@@ -66,7 +70,8 @@ func Run(cfg *config.Config) {
 	authController := auth.NewAuthControl(userService, authManager, encryptManager)
 	userController := user.NewUserControl(userService, authManager, encryptManager)
 	adminController := admin.NewAdminControl(userService, authManager, encryptManager)
-	noteController := note.NewNoteControl(noteService, authManager)
+	noteController := note.NewNoteControl(fileMetaService, noteService, authManager, fileManager)
+	fileController := file.NewFileControl(fileMetaService, fileManager)
 
 	httpserver := httpserver.New(cfg.HTTP.PORT)
 
@@ -77,6 +82,7 @@ func Run(cfg *config.Config) {
 		adminController,
 		authController,
 		authMiddleware,
+		fileController,
 		cfg,
 	)
 

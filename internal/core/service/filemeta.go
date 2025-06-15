@@ -31,6 +31,12 @@ func (fms *FileMetaService) DeleteFileMetaByNoteID(ctx context.Context, ownerTyp
 func (fms *FileMetaService) FileMetasExistsByIDAndUserID(ctx context.Context, id int, userID int) (bool, error) {
 	return fms.repo.FileMetasExistsByIDAndUserID(ctx, id, userID)
 }
+func (fms *FileMetaService) GetFileMetaIDByID(ctx context.Context, ownerType string, ownerID int) ([]int, error) {
+	if ownerType != string(entity.OwnerNote) {
+		return nil, errors.New("INVALID_OWNER_TYPE")
+	}
+	return fms.repo.GetFileMetaIDByID(ctx, entity.OwnerNote, ownerID)
+}
 func (fms *FileMetaService) GetFileMetaByID(ctx context.Context, id int) (entity.FileMeta, error) {
 	fileMeta, err := fms.repo.GetFileMetaByID(ctx, id)
 	if err != nil {

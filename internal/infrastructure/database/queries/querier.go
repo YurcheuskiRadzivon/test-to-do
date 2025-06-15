@@ -18,6 +18,7 @@ type Querier interface {
 	DeleteUser(ctx context.Context, id int) error
 	FileMetasExistsByIDAndUserID(ctx context.Context, arg FileMetasExistsByIDAndUserIDParams) (bool, error)
 	GetFileMetaByID(ctx context.Context, id int) (GetFileMetaByIDRow, error)
+	GetFileMetaIDByID(ctx context.Context, arg GetFileMetaIDByIDParams) ([]int, error)
 	GetFileMetaURI(ctx context.Context, id int) (string, error)
 	GetFileMetas(ctx context.Context) ([]Filemeta, error)
 	GetNote(ctx context.Context, arg GetNoteParams) (Note, error)

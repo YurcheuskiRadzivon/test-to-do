@@ -11,6 +11,7 @@ type FileMetaRepository interface {
 	DeleteFileMetaByID(ctx context.Context, id int) error
 	DeleteFileMetaByNoteID(ctx context.Context, ownerType entity.OwnerType, ownerID int) error
 	FileMetasExistsByIDAndUserID(ctx context.Context, id int, userID int) (bool, error)
+	GetFileMetaIDByID(ctx context.Context, ownerType entity.OwnerType, ownerID int) ([]int, error)
 	GetFileMetaByID(ctx context.Context, id int) (entity.FileMeta, error)
 	GetFileMetaURI(ctx context.Context, id int) (string, error)
 	GetFileMetas(ctx context.Context) ([]entity.FileMeta, error)

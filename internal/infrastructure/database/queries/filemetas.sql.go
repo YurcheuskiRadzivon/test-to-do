@@ -112,6 +112,37 @@ func (q *Queries) GetFileMetaByID(ctx context.Context, id int) (GetFileMetaByIDR
 	return i, err
 }
 
+const getFileMetaIDByID = `-- name: GetFileMetaIDByID :many
+SELECT id
+FROM filemetas
+WHERE owner_type = $1 AND owner_id = $2
+`
+
+type GetFileMetaIDByIDParams struct {
+	OwnerType string `json:"owner_type"`
+	OwnerID   int    `json:"owner_id"`
+}
+
+func (q *Queries) GetFileMetaIDByID(ctx context.Context, arg GetFileMetaIDByIDParams) ([]int, error) {
+	rows, err := q.db.Query(ctx, getFileMetaIDByID, arg.OwnerType, arg.OwnerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int
+	for rows.Next() {
+		var id int
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getFileMetaURI = `-- name: GetFileMetaURI :one
 SELECT uri
 FROM filemetas

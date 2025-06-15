@@ -13,8 +13,8 @@ type FileMetaRepo struct {
 	queries *queries.Queries
 }
 
-func NewFileMetaRepo(db *queries.Queries, pool *pgxpool.Pool) *NoteRepo {
-	return &NoteRepo{
+func NewFileMetaRepo(db *queries.Queries, pool *pgxpool.Pool) *FileMetaRepo {
+	return &FileMetaRepo{
 		queries: db,
 		pool:    pool,
 	}
@@ -60,6 +60,14 @@ func (fmr *FileMetaRepo) GetFileMetaByID(ctx context.Context, id int) (entity.Fi
 func (fmr *FileMetaRepo) GetFileMetaURI(ctx context.Context, id int) (string, error) {
 	return fmr.queries.GetFileMetaURI(ctx, id)
 }
+
+func (fmr *FileMetaRepo) GetFileMetaIDByID(ctx context.Context, ownerType entity.OwnerType, ownerID int) ([]int, error) {
+	return fmr.queries.GetFileMetaIDByID(ctx, queries.GetFileMetaIDByIDParams{
+		OwnerType: string(ownerType),
+		OwnerID:   ownerID,
+	})
+}
+
 func (fmr *FileMetaRepo) GetFileMetas(ctx context.Context) ([]entity.FileMeta, error) {
 	res, err := fmr.queries.GetFileMetas(ctx)
 	if err != nil {

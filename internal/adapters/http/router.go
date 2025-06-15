@@ -6,6 +6,7 @@ import (
 	"github.com/YurcheuskiRadzivon/test-to-do/config"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/admin"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/auth"
+	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/file"
 	middleware "github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/middleware/auth"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/note"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/user"
@@ -20,6 +21,7 @@ func NewRoute(
 	adminController admin.AdminController,
 	authController auth.AuthController,
 	authMiddleware middleware.AuthMiddleware,
+	fileController file.FileController,
 	cfg *config.Config,
 ) {
 	APIC := &APIController{
@@ -29,8 +31,15 @@ func NewRoute(
 		adminController: adminController,
 		authController:  authController,
 		authMiddleware:  authMiddleware,
+		fileController:  fileController,
 		cfg:             cfg,
 	}
+
+	//app.Static("/uploadfiles/", "./uploaded_files/")
+	/*app.Get("/uploadfiles/:filename", func(c *fiber.Ctx) error {
+		filename := c.Params("filename")
+		return c.SendFile("./uploaded_files/" + filename)
+	})*/
 
 	app.Static("/swagger/swagger.yaml", "./docs/swagger.yaml")
 	app.Get("/swagger/*", swagger.New(swagger.Config{
@@ -63,11 +72,15 @@ func NewRoute(
 	noteGroup := app.Group("/manage")
 	{
 		noteGroup.Use(APIC.authMiddleware.AuthUserMiddleware)
+
 		noteGroup.Get("/note/:id", APIC.noteController.GetNote)
 		noteGroup.Get("/notes", APIC.noteController.GetNotes)
 		noteGroup.Post("/note", APIC.noteController.CreateNote)
 		noteGroup.Delete("/note/:id", APIC.noteController.DeleteNote)
 		noteGroup.Put("/note/:id", APIC.noteController.UpdateNote)
+
+		noteGroup.Get("/file/:file_id", APIC.fileController.DownloadFile)
+		noteGroup.Delete("/file/:file_id", APIC.fileController.DeleteFile)
 	}
 
 }

@@ -56,7 +56,7 @@ func (q *Queries) DeleteNote(ctx context.Context, arg DeleteNoteParams) error {
 }
 
 const getNote = `-- name: GetNote :one
-SELECT id, title, description, status, author_id, has_files FROM notes WHERE id = $1 AND author_id = $2
+SELECT id, title, description, status, author_id FROM notes WHERE id = $1 AND author_id = $2
 `
 
 type GetNoteParams struct {
@@ -73,13 +73,12 @@ func (q *Queries) GetNote(ctx context.Context, arg GetNoteParams) (Note, error) 
 		&i.Description,
 		&i.Status,
 		&i.AuthorID,
-		&i.HasFiles,
 	)
 	return i, err
 }
 
 const getNotes = `-- name: GetNotes :many
-SELECT id, title, description, status, author_id, has_files FROM notes
+SELECT id, title, description, status, author_id FROM notes
 WHERE author_id = $1
 `
 
@@ -98,7 +97,6 @@ func (q *Queries) GetNotes(ctx context.Context, authorID int) ([]Note, error) {
 			&i.Description,
 			&i.Status,
 			&i.AuthorID,
-			&i.HasFiles,
 		); err != nil {
 			return nil, err
 		}
