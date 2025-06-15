@@ -9,6 +9,10 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+const (
+	fileIDParam = "file_id"
+)
+
 type FileMetaService interface {
 	GetFileMetaURI(ctx context.Context, id int) (string, error)
 	DeleteFileMetaByID(ctx context.Context, id int) error
@@ -38,7 +42,7 @@ func NewFileControl(fileMetaService FileMetaService, fileManager FileManager) *F
 }
 
 func (fc *FileControl) DownloadFile(ctx *fiber.Ctx) error {
-	fileID, err := strconv.Atoi(ctx.Params("file_id"))
+	fileID, err := strconv.Atoi(ctx.Params(fileIDParam))
 	if err != nil || fileID == 0 {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
@@ -56,7 +60,7 @@ func (fc *FileControl) DownloadFile(ctx *fiber.Ctx) error {
 }
 
 func (fc *FileControl) DeleteFile(ctx *fiber.Ctx) error {
-	fileID, err := strconv.Atoi(ctx.Params("file_id"))
+	fileID, err := strconv.Atoi(ctx.Params(fileIDParam))
 	if err != nil || fileID == 0 {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}

@@ -1,12 +1,14 @@
 package filemanage
 
 import (
-	"errors"
-	"fmt"
 	"mime/multipart"
 	"os"
 
 	"github.com/gofiber/fiber/v2"
+)
+
+const (
+	mainPath = "uploaded_files/"
 )
 
 type FileManager interface {
@@ -35,20 +37,20 @@ func (fm *FileManage) UploadFiles(ctx *fiber.Ctx, files []*multipart.FileHeader)
 }
 
 func (fm *FileManage) UploadFile(ctx *fiber.Ctx, file *multipart.FileHeader) (string, error) {
-	err := ctx.SaveFile(file, "uploaded_files/"+file.Filename)
+	err := ctx.SaveFile(file, mainPath+file.Filename)
 	if err != nil {
-		return "", errors.New(fmt.Sprintf("Ошибка при сохранении файла %s: %v", file.Filename, err))
+		return "", err
 	}
 	uri := file.Filename
 	return uri, nil
 }
 
 func (fm *FileManage) DownloadFile(ctx *fiber.Ctx, path string) error {
-	return ctx.SendFile("uploaded_files/" + path)
+	return ctx.SendFile(mainPath + path)
 }
 
 func (fm *FileManage) DeleteFile(ctx *fiber.Ctx, path string) error {
-	err := os.Remove("uploaded_files/" + path)
+	err := os.Remove(mainPath + path)
 	if err != nil {
 		return err
 	}

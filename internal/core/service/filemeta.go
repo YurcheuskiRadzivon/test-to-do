@@ -8,6 +8,10 @@ import (
 	ports "github.com/YurcheuskiRadzivon/test-to-do/internal/core/ports/repositories"
 )
 
+const (
+	invalidOwnerType = "INVALID_OWNER_TYPE"
+)
+
 type FileMetaService struct {
 	repo ports.FileMetaRepository
 }
@@ -24,7 +28,7 @@ func (fms *FileMetaService) DeleteFileMetaByID(ctx context.Context, id int) erro
 }
 func (fms *FileMetaService) DeleteFileMetaByNoteID(ctx context.Context, ownerType string, ownerID int) error {
 	if ownerType != string(entity.OwnerNote) {
-		return errors.New("INVALID_OWNER_TYPE")
+		return errors.New(invalidOwnerType)
 	}
 	return fms.repo.DeleteFileMetaByNoteID(ctx, entity.OwnerNote, ownerID)
 }
@@ -33,7 +37,7 @@ func (fms *FileMetaService) FileMetasExistsByIDAndUserID(ctx context.Context, id
 }
 func (fms *FileMetaService) GetFileMetaIDByID(ctx context.Context, ownerType string, ownerID int) ([]int, error) {
 	if ownerType != string(entity.OwnerNote) {
-		return nil, errors.New("INVALID_OWNER_TYPE")
+		return nil, errors.New(invalidOwnerType)
 	}
 	return fms.repo.GetFileMetaIDByID(ctx, entity.OwnerNote, ownerID)
 }

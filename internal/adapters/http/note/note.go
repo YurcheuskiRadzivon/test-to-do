@@ -14,10 +14,13 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type GetNoteReq struct {
-	Noteinfo   entity.Note `json:"noteinfo"`
-	FileIDList []int       `json:"file_id_list"`
-}
+const (
+	nameFormTitle       = "title"
+	nameFormDescription = "description"
+	nameFormStatus      = "status"
+	nameFormFiles       = "[]files"
+	contentType         = "Content-Type"
+)
 
 type FileManager interface {
 	UploadFiles(ctx *fiber.Ctx, files []*multipart.FileHeader) ([]string, error)
@@ -66,7 +69,7 @@ func NewNoteControl(
 
 func (nc *NoteControl) GetNotes(ctx *fiber.Ctx) error {
 	userID, err := nc.authManager.GetUserID(ctx)
-	res := make([]GetNoteReq, 0)
+	res := make([]request.GetNoteReq, 0)
 
 	if err != nil {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, jwtservice.StatusInvalidToken)
@@ -76,11 +79,11 @@ func (nc *NoteControl) GetNotes(ctx *fiber.Ctx) error {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
 	for _, note := range notes {
-		fileMetasID, err := nc.fileMetaService.GetFileMetaIDByID(ctx.Context(), "NOTE", note.NoteID)
+		fileMetasID, err := nc.fileMetaService.GetFileMetaIDByID(ctx.Context(), string(entity.OwnerNote), note.NoteID)
 		if err != nil {
 			return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 		}
-		res = append(res, GetNoteReq{
+		res = append(res, request.GetNoteReq{
 			Noteinfo:   note,
 			FileIDList: fileMetasID,
 		})
@@ -104,12 +107,12 @@ func (nc *NoteControl) GetNote(ctx *fiber.Ctx) error {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
 
-	fileMetasID, err := nc.fileMetaService.GetFileMetaIDByID(ctx.Context(), "NOTE", note.NoteID)
+	fileMetasID, err := nc.fileMetaService.GetFileMetaIDByID(ctx.Context(), string(entity.OwnerNote), note.NoteID)
 	if err != nil {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
 
-	return ctx.Status(http.StatusOK).JSON(GetNoteReq{
+	return ctx.Status(http.StatusOK).JSON(request.GetNoteReq{
 		Noteinfo:   note,
 		FileIDList: fileMetasID,
 	})
@@ -121,16 +124,16 @@ func (nc *NoteControl) CreateNote(ctx *fiber.Ctx) error {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, jwtservice.StatusInvalidToken)
 	}
 
-	title := ctx.FormValue("title")
-	description := ctx.FormValue("description")
-	status := ctx.FormValue("status")
+	title := ctx.FormValue(nameFormTitle)
+	description := ctx.FormValue(nameFormDescription)
+	status := ctx.FormValue(nameFormStatus)
 
 	form, err := ctx.MultipartForm()
 	if err != nil {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
 
-	files := form.File["[]files"]
+	files := form.File[nameFormFiles]
 	uriList, err := nc.fileManager.UploadFiles(ctx, files)
 	if err != nil {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
@@ -149,8 +152,8 @@ func (nc *NoteControl) CreateNote(ctx *fiber.Ctx) error {
 
 	for i := range uriList {
 		err := nc.fileMetaService.CreateFileMeta(ctx.Context(), entity.FileMeta{
-			ContentType: files[i].Header.Get("Content-Type"),
-			OwnerType:   "NOTE",
+			ContentType: files[i].Header.Get(contentType),
+			OwnerType:   entity.OwnerNote,
 			OwnerID:     noteID,
 			UserID:      userID,
 			URI:         uriList[i],
@@ -209,7 +212,7 @@ func (nc *NoteControl) DeleteNote(ctx *fiber.Ctx) error {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
 
-	fileMetasID, err := nc.fileMetaService.GetFileMetaIDByID(ctx.Context(), "NOTE", noteID)
+	fileMetasID, err := nc.fileMetaService.GetFileMetaIDByID(ctx.Context(), string(entity.OwnerNote), noteID)
 	if err != nil {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
