@@ -1,4 +1,4 @@
--- +goose Up
+-- +migrate Up
 CREATE TABLE usersnotes (
     user_id INT NOT NULL,
     note_id INT NOT NULL,

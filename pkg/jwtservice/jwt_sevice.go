@@ -9,7 +9,7 @@ import (
 const (
 	ParamID             = "id"
 	HeaderAuthorization = "Authorization"
-	StatusInvalidToken  = "INVALID_TOKEN"
+	StatusInvalidToken  = "INVALID_OR_EXPIRED_TOKEN"
 )
 
 var (

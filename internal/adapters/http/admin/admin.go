@@ -55,7 +55,7 @@ func (ac *AdminControl) GetUsers(ctx *fiber.Ctx) error {
 	}
 
 	if userID != 0 {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrNotEnoughRights)
 	}
 
 	users, err := ac.userService.GetUsers(ctx.Context())
@@ -73,7 +73,6 @@ func (ac *AdminControl) CreateUser(ctx *fiber.Ctx) error {
 	}
 
 	hashedPassword, err := ac.encryptManager.EncodePassword(req.Password)
-
 	if err != nil {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
