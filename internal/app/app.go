@@ -2,8 +2,6 @@ package app
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -28,7 +26,6 @@ import (
 	"github.com/YurcheuskiRadzivon/test-to-do/pkg/httpserver"
 	"github.com/YurcheuskiRadzivon/test-to-do/pkg/jwtservice"
 	"github.com/jackc/pgx/v5/pgxpool"
-	migrator "github.com/rubenv/sql-migrate"
 
 	_ "github.com/lib/pq"
 )
@@ -108,26 +105,4 @@ func Run(cfg *config.Config) {
 	if err != nil {
 		log.Fatalf("Httpserver: %v", err)
 	}
-}
-
-func migrate(url string) error {
-
-	db, err := sql.Open("postgres", url)
-	if err != nil {
-		return fmt.Errorf("failed to connect to database: %w", err)
-	}
-
-	defer db.Close()
-
-	migrations := &migrator.FileMigrationSource{
-		Dir: "sql/migrations",
-	}
-
-	n, err := migrator.Exec(db, "postgres", migrations, migrator.Up)
-	if err != nil {
-		return fmt.Errorf("migration failed: %w", err)
-	}
-
-	fmt.Printf("Applied %d migrations!\n", n)
-	return nil
 }
