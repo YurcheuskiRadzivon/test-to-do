@@ -18,8 +18,8 @@ const (
 type FileManager interface {
 	UploadFiles(ctx *fiber.Ctx, files []*multipart.FileHeader) ([]string, error)
 	UploadFile(ctx *fiber.Ctx, file *multipart.FileHeader) (string, error)
-	DownloadFile(ctx *fiber.Ctx, path string) error
-	DeleteFile(ctx *fiber.Ctx, path string) error
+	DownloadFile(ctx *fiber.Ctx, filename string) error
+	DeleteFile(ctx *fiber.Ctx, filename string) error
 }
 
 type FileManage struct {
@@ -67,12 +67,12 @@ func (fm *FileManage) UploadFile(ctx *fiber.Ctx, file *multipart.FileHeader) (st
 	return uri, nil
 }
 
-func (fm *FileManage) DownloadFile(ctx *fiber.Ctx, path string) error {
-	return ctx.SendFile(mainPath + path)
+func (fm *FileManage) DownloadFile(ctx *fiber.Ctx, filename string) error {
+	return ctx.SendFile(mainPath + filename)
 }
 
-func (fm *FileManage) DeleteFile(ctx *fiber.Ctx, path string) error {
-	err := os.Remove(mainPath + path)
+func (fm *FileManage) DeleteFile(ctx *fiber.Ctx, filename string) error {
+	err := os.Remove(mainPath + filename)
 	if err != nil {
 		return err
 	}
