@@ -23,6 +23,7 @@ import (
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/repositories"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/service"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/infrastructure/database/queries"
+	"github.com/YurcheuskiRadzivon/test-to-do/internal/infrastructure/migrations"
 	"github.com/YurcheuskiRadzivon/test-to-do/pkg/generator"
 	"github.com/YurcheuskiRadzivon/test-to-do/pkg/httpserver"
 	"github.com/YurcheuskiRadzivon/test-to-do/pkg/jwtservice"
@@ -34,7 +35,8 @@ import (
 
 func Run(cfg *config.Config) {
 	//PG
-	if err := migrate(cfg.PG.URL); err != nil {
+	migrator := migrations.NewPGMigrator(cfg.PG.URL, "sql/migrations")
+	if err := migrator.Migrate(); err != nil {
 		log.Fatalf("migrate: %v", err)
 	}
 
