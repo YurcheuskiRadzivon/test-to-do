@@ -64,14 +64,14 @@ func Run(cfg *config.Config) {
 	fileMetaService := service.NewFileMetaService(fileMetaRepo)
 
 	//Middleware
-	authMiddleware := middleware.NewAuthMW(authManager, userService, cfg)
+	authMiddleware := middleware.NewAuthMW(fileMetaService, authManager, userService, cfg)
 
 	//Controller
 	authController := auth.NewAuthControl(userService, authManager, encryptManager)
 	userController := user.NewUserControl(userService, authManager, encryptManager)
 	adminController := admin.NewAdminControl(userService, authManager, encryptManager)
 	noteController := note.NewNoteControl(fileMetaService, noteService, authManager, fileManager)
-	fileController := file.NewFileControl(fileMetaService, fileManager)
+	fileController := file.NewFileControl(fileMetaService, fileManager, authManager, noteService)
 
 	httpserver := httpserver.New(cfg.HTTP.PORT)
 

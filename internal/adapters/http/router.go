@@ -69,18 +69,23 @@ func NewRoute(
 		userGroup.Put("/user", APIC.userController.UpdateUser)
 	}
 
-	noteGroup := app.Group("/manage")
+	noteGroup := app.Group("/note")
 	{
 		noteGroup.Use(APIC.authMiddleware.AuthUserMiddleware)
 
-		noteGroup.Get("/note/:id", APIC.noteController.GetNote)
-		noteGroup.Get("/notes", APIC.noteController.GetNotes)
-		noteGroup.Post("/note", APIC.noteController.CreateNote)
-		noteGroup.Delete("/note/:id", APIC.noteController.DeleteNote)
-		noteGroup.Put("/note/:id", APIC.noteController.UpdateNote)
+		noteGroup.Get("/all", APIC.noteController.GetNotes)
+		noteGroup.Get("/:id", APIC.noteController.GetNote)
+		noteGroup.Post("/", APIC.noteController.CreateNote)
+		noteGroup.Delete("/:id", APIC.noteController.DeleteNote)
+		noteGroup.Put("/:id", APIC.noteController.UpdateNote)
 
-		noteGroup.Get("/file/:file_id", APIC.fileController.DownloadFile)
-		noteGroup.Delete("/file/:file_id", APIC.fileController.DeleteFile)
+	}
+
+	fileGroup := app.Group("/file")
+	{
+		fileGroup.Get("/:file_id", APIC.authMiddleware.AuthFileActionMiddleware, APIC.fileController.DownloadFile)
+		fileGroup.Delete("/:file_id", APIC.authMiddleware.AuthFileActionMiddleware, APIC.fileController.DeleteFile)
+		fileGroup.Post("/upload_files/:note_id", APIC.authMiddleware.AuthUserMiddleware, APIC.fileController.UploadFiles)
 	}
 
 }

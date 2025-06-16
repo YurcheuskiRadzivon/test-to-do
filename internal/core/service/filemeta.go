@@ -4,12 +4,9 @@ import (
 	"context"
 	"errors"
 
+	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/response"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/entity"
 	ports "github.com/YurcheuskiRadzivon/test-to-do/internal/core/ports/repositories"
-)
-
-const (
-	invalidOwnerType = "INVALID_OWNER_TYPE"
 )
 
 type FileMetaService struct {
@@ -23,24 +20,29 @@ func NewFileMetaService(repo ports.FileMetaRepository) *FileMetaService {
 func (fms *FileMetaService) CreateFileMeta(ctx context.Context, fileMeta entity.FileMeta) error {
 	return fms.repo.CreateFileMeta(ctx, fileMeta)
 }
+
 func (fms *FileMetaService) DeleteFileMetaByID(ctx context.Context, id int) error {
 	return fms.repo.DeleteFileMetaByID(ctx, id)
 }
+
 func (fms *FileMetaService) DeleteFileMetaByNoteID(ctx context.Context, ownerType string, ownerID int) error {
 	if ownerType != string(entity.OwnerNote) {
-		return errors.New(invalidOwnerType)
+		return errors.New(response.ErrInvalidOwnerType)
 	}
 	return fms.repo.DeleteFileMetaByNoteID(ctx, entity.OwnerNote, ownerID)
 }
+
 func (fms *FileMetaService) FileMetasExistsByIDAndUserID(ctx context.Context, id int, userID int) (bool, error) {
 	return fms.repo.FileMetasExistsByIDAndUserID(ctx, id, userID)
 }
+
 func (fms *FileMetaService) GetFileMetaIDByID(ctx context.Context, ownerType string, ownerID int) ([]int, error) {
 	if ownerType != string(entity.OwnerNote) {
-		return nil, errors.New(invalidOwnerType)
+		return nil, errors.New(response.ErrInvalidOwnerType)
 	}
 	return fms.repo.GetFileMetaIDByID(ctx, entity.OwnerNote, ownerID)
 }
+
 func (fms *FileMetaService) GetFileMetaByID(ctx context.Context, id int) (entity.FileMeta, error) {
 	fileMeta, err := fms.repo.GetFileMetaByID(ctx, id)
 	if err != nil {
@@ -48,9 +50,11 @@ func (fms *FileMetaService) GetFileMetaByID(ctx context.Context, id int) (entity
 	}
 	return fileMeta, nil
 }
+
 func (fms *FileMetaService) GetFileMetaURI(ctx context.Context, id int) (string, error) {
 	return fms.repo.GetFileMetaURI(ctx, id)
 }
+
 func (fms *FileMetaService) GetFileMetas(ctx context.Context) ([]entity.FileMeta, error) {
 	fileMetas, err := fms.repo.GetFileMetas(ctx)
 	if err != nil {

@@ -18,7 +18,7 @@ const (
 	nameFormTitle       = "title"
 	nameFormDescription = "description"
 	nameFormStatus      = "status"
-	nameFormFiles       = "[]files"
+	NameFormFiles       = "[]files"
 	contentType         = "Content-Type"
 )
 
@@ -70,14 +70,15 @@ func NewNoteControl(
 func (nc *NoteControl) GetNotes(ctx *fiber.Ctx) error {
 	userID, err := nc.authManager.GetUserID(ctx)
 	res := make([]request.GetNoteReq, 0)
-
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, jwtservice.StatusInvalidToken)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidToken)
 	}
+
 	notes, err := nc.noteService.GetNotes(ctx.Context(), userID)
 	if err != nil {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
+
 	for _, note := range notes {
 		fileMetasID, err := nc.fileMetaService.GetFileMetaIDByID(ctx.Context(), string(entity.OwnerNote), note.NoteID)
 		if err != nil {
@@ -94,7 +95,7 @@ func (nc *NoteControl) GetNotes(ctx *fiber.Ctx) error {
 func (nc *NoteControl) GetNote(ctx *fiber.Ctx) error {
 	userID, err := nc.authManager.GetUserID(ctx)
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, jwtservice.StatusInvalidToken)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidToken)
 	}
 
 	noteID, err := strconv.Atoi(ctx.Params(jwtservice.ParamID))
@@ -121,7 +122,7 @@ func (nc *NoteControl) GetNote(ctx *fiber.Ctx) error {
 func (nc *NoteControl) CreateNote(ctx *fiber.Ctx) error {
 	userID, err := nc.authManager.GetUserID(ctx)
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, jwtservice.StatusInvalidToken)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidToken)
 	}
 
 	title := ctx.FormValue(nameFormTitle)
@@ -133,7 +134,8 @@ func (nc *NoteControl) CreateNote(ctx *fiber.Ctx) error {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
 
-	files := form.File[nameFormFiles]
+	files := form.File[NameFormFiles]
+
 	uriList, err := nc.fileManager.UploadFiles(ctx, files)
 	if err != nil {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
@@ -171,7 +173,7 @@ func (nc *NoteControl) CreateNote(ctx *fiber.Ctx) error {
 func (nc *NoteControl) UpdateNote(ctx *fiber.Ctx) error {
 	userID, err := nc.authManager.GetUserID(ctx)
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, jwtservice.StatusInvalidToken)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidToken)
 	}
 
 	noteID, err := strconv.Atoi(ctx.Params(jwtservice.HeaderAuthorization))
@@ -204,7 +206,7 @@ func (nc *NoteControl) UpdateNote(ctx *fiber.Ctx) error {
 func (nc *NoteControl) DeleteNote(ctx *fiber.Ctx) error {
 	userID, err := nc.authManager.GetUserID(ctx)
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, jwtservice.StatusInvalidToken)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidToken)
 	}
 
 	noteID, err := strconv.Atoi(ctx.Params(jwtservice.ParamID))

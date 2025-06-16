@@ -10,8 +10,7 @@ import (
 )
 
 const (
-	UserIDHeader      = "user_id"
-	ErrNotImplemented = "NOT_IMPLEMENTED"
+	UserIDHeader = "user_id"
 )
 
 type UserService interface {
@@ -61,13 +60,12 @@ func (ac *AuthControl) Login(ctx *fiber.Ctx) error {
 	}
 
 	if ac.encryptManager.CheckPassword(req.Password, hashedPassword); err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrIvalidPassword)
 	}
 
 	return ac.authManager.CreateAuthResponse(ctx, userID)
-
 }
 
 func (ac *AuthControl) Register(ctx *fiber.Ctx) error {
-	return response.ErrorResponse(ctx, http.StatusBadRequest, ErrNotImplemented)
+	return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrNotImplemented)
 }

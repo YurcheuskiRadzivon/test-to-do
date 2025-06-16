@@ -5,12 +5,16 @@ import (
 )
 
 const (
-	ErrInvalidRequest  = "INVALID_REQUEST"
-	ErrCodeInvalid     = "INVALID_CODE"
-	ErrPassHashInvalid = "PASSWORD_HASH_INVALID"
-	ErrSignInFailed    = "SIGN_IN_FAILED"
-	ErrUnknown         = "UKNOWN_ERROR"
-	ErrJWT             = "ENCRYPTION_ERROR"
+	ErrInvalidRequest   = "INVALID_REQUEST"
+	ErrUnknown          = "UKNOWN_ERROR"
+	ErrJWT              = "ENCRYPTION_ERROR"
+	ErrInvalidOwnerType = "INVALID_OWNER_TYPE"
+	ErrNotEnoughRights  = "NOT_ENOUGH_RIGHTS"
+	ErrNotImplemented   = "NOT_IMPLEMENTED"
+	ErrIvalidPassword   = "INVALID_PASSWORD"
+	ErrInvalidFileID    = "INVALID_FILE_ID"
+	ErrInvalidNoteID    = "INVALID_NOTE_ID"
+	ErrInvalidToken     = "INVALID_OR_EXPIRED_TOKEN"
 )
 
 type Error struct {
