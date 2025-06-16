@@ -23,6 +23,7 @@ import (
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/repositories"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/service"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/infrastructure/database/queries"
+	"github.com/YurcheuskiRadzivon/test-to-do/pkg/generator"
 	"github.com/YurcheuskiRadzivon/test-to-do/pkg/httpserver"
 	"github.com/YurcheuskiRadzivon/test-to-do/pkg/jwtservice"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -44,14 +45,16 @@ func Run(cfg *config.Config) {
 
 	q := queries.New(conn)
 
-	//JWT
+	//Generator
+	g := generator.NewGenerator()
 
+	//JWT
 	jwtS := jwtservice.New(cfg.JWT.SECRETKEY)
 
 	//Managers
 	authManager := authmanage.NewAuthManage(jwtS)
 	encryptManager := encryptmanage.NewEncrypter()
-	fileManager := filemanage.NewFileManage()
+	fileManager := filemanage.NewFileManage(g)
 
 	//Repo
 	noteRepo := repositories.NewNoteRepo(q, conn)

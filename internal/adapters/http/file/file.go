@@ -145,5 +145,4 @@ func (fc *FileControl) UploadFiles(ctx *fiber.Ctx) error {
 	return ctx.Status(http.StatusOK).JSON(response.MessageResponse{
 		Message: response.MessageSuccsessfully,
 	})
-
 }

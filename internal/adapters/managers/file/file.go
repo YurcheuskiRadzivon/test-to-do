@@ -1,14 +1,18 @@
 package filemanage
 
 import (
+	"errors"
 	"mime/multipart"
 	"os"
 
+	"github.com/YurcheuskiRadzivon/test-to-do/pkg/generator"
 	"github.com/gofiber/fiber/v2"
 )
 
 const (
-	mainPath = "uploaded_files/"
+	mainPath             = "uploaded_files/"
+	contentType          = "Content-Type"
+	errUnsupportedFormat = "UNSUPPORTED_FORMAT"
 )
 
 type FileManager interface {
@@ -18,10 +22,14 @@ type FileManager interface {
 	DeleteFile(ctx *fiber.Ctx, path string) error
 }
 
-type FileManage struct{}
+type FileManage struct {
+	g generator.UUVGenerator
+}
 
-func NewFileManage() *FileManage {
-	return &FileManage{}
+func NewFileManage(g generator.UUVGenerator) *FileManage {
+	return &FileManage{
+		g: g,
+	}
 }
 
 func (fm *FileManage) UploadFiles(ctx *fiber.Ctx, files []*multipart.FileHeader) ([]string, error) {
@@ -37,11 +45,25 @@ func (fm *FileManage) UploadFiles(ctx *fiber.Ctx, files []*multipart.FileHeader)
 }
 
 func (fm *FileManage) UploadFile(ctx *fiber.Ctx, file *multipart.FileHeader) (string, error) {
-	err := ctx.SaveFile(file, mainPath+file.Filename)
+	format := ""
+	switch file.Header.Get(contentType) {
+	case "image/jpeg":
+		format = ".jpg"
+	case "application/pdf":
+		format = ".pdf"
+	case "image/png":
+		format = ".png"
+	default:
+		return "", errors.New(errUnsupportedFormat)
+	}
+
+	filename := fm.g.NewFileName()
+
+	err := ctx.SaveFile(file, mainPath+filename+format)
 	if err != nil {
 		return "", err
 	}
-	uri := file.Filename
+	uri := filename + format
 	return uri, nil
 }
 
