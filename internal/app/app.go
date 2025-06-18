@@ -19,6 +19,7 @@ import (
 	encryptmanage "github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/managers/encrypt"
 	filemanage "github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/managers/file"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/repositories"
+	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/storages"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/service"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/infrastructure/database/queries"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/infrastructure/migrations"
@@ -26,6 +27,7 @@ import (
 	"github.com/YurcheuskiRadzivon/test-to-do/pkg/httpserver"
 	"github.com/YurcheuskiRadzivon/test-to-do/pkg/jwtservice"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/minio/minio-go"
 
 	_ "github.com/lib/pq"
 )
@@ -50,15 +52,46 @@ func Run(cfg *config.Config) {
 	//JWT
 	jwtS := jwtservice.New(cfg.JWT.SECRETKEY)
 
-	//Managers
-	authManager := authmanage.NewAuthManage(jwtS)
-	encryptManager := encryptmanage.NewEncrypter()
-	fileManager := filemanage.NewFileManage(g)
+	//Client
+	minioClient, err := minio.New(
+		cfg.LOCALSTACK.INTERNAL_ENDPOINT,
+		cfg.LOCALSTACK.ACCESS_KEY,
+		cfg.LOCALSTACK.SECRET_KEY,
+		false,
+	)
+	if err != nil {
+		log.Fatal("minio: ", err)
+	}
+
+	exists, err := minioClient.BucketExists(cfg.LOCALSTACK.BUCKET)
+	if err != nil {
+		log.Fatal("minio: create bucket: ", err)
+	}
+	if !exists {
+		err := minioClient.MakeBucket(cfg.LOCALSTACK.BUCKET, "")
+		if err != nil {
+			log.Fatal("minio: create bucket: ", err)
+		}
+	}
+
+	buckets, err := minioClient.ListBuckets()
+	if err != nil {
+		log.Fatalf("Не могу подключиться к S3: %v", err)
+	}
+	log.Println("Сервер доступен. Бакеты:", buckets)
 
 	//Repo
 	noteRepo := repositories.NewNoteRepo(q, conn)
 	userRepo := repositories.NewUserRepo(q, conn)
 	fileMetaRepo := repositories.NewFileMetaRepo(q, conn)
+
+	//Storage
+	s3Storage := storages.NewS3Storage(minioClient, cfg.LOCALSTACK.BUCKET, cfg.LOCALSTACK.EXTERNAL_ENDPOINT, cfg.LOCALSTACK.INTERNAL_ENDPOINT)
+
+	//Managers
+	authManager := authmanage.NewAuthManage(jwtS)
+	encryptManager := encryptmanage.NewEncrypter()
+	fileManager := filemanage.NewFileManage(g, s3Storage)
 
 	//Service
 	noteService := service.NewNoteService(noteRepo)

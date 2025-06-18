@@ -34,7 +34,7 @@ type FileMetaService interface {
 }
 
 type FileManager interface {
-	DownloadFile(ctx *fiber.Ctx, path string) error
+	DownloadFile(ctx *fiber.Ctx, objectName string) (string, error)
 	DeleteFile(ctx *fiber.Ctx, path string) error
 	UploadFiles(ctx *fiber.Ctx, files []*multipart.FileHeader) ([]string, error)
 }
@@ -72,11 +72,12 @@ func (fc *FileControl) DownloadFile(ctx *fiber.Ctx) error {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
 
-	if err := fc.fileManager.DownloadFile(ctx, uri); err != nil {
+	url, err := fc.fileManager.DownloadFile(ctx, uri)
+	if err != nil {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
 
-	return fc.fileManager.DownloadFile(ctx, uri)
+	return ctx.Redirect(url, fiber.StatusFound)
 }
 
 func (fc *FileControl) DeleteFile(ctx *fiber.Ctx) error {

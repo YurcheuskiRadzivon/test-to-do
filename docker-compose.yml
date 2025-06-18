@@ -28,7 +28,6 @@ services:
       - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf
     depends_on:
       - app
-
   
   app:
     build:
@@ -39,22 +38,35 @@ services:
     env_file:
       - .env
     depends_on:
+      #localstack:
+        #condition: service_healthy
       db:
         condition: service_healthy
-
-        
+  
   localstack:
-    image: localstack/localstack:latest
-    container_name: "localstack"
+    image: localstack/localstack
+    container_name: localstack
     ports:
-      - '4563-4599:4563-4599'
-      - '8055:8080'
+      - "4566:4566"           
     environment:
       - SERVICES=s3
       - DEBUG=1
-      - DATA_DIR=/tmp/localstack/data
+      - DATA_DIR=/data
+      - EDGE_PORT=4566
+      - PERSISTENCE=1
     volumes:
-      - './.localstack:/tmp/localstack'
-      - '/var/run/docker.sock:/var/run/docker.sock'      
+      - './.localstack:/data'
+    #healthcheck:
+      #test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      #interval: 5s
+      #timeout: 2s
+      #retries: 15
+    
+
+    
+
+        
+  
+
 
   
