@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -56,14 +57,13 @@ func NewAuthMW(
 
 func (am *AuthMW) AuthUserMiddleware(ctx *fiber.Ctx) error {
 	err := am.authManager.Validate(ctx)
-
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusUnauthorized, response.ErrInvalidToken)
+		return response.ErrorResponse(ctx, http.StatusUnauthorized, err.Error())
 	}
 
 	userID, err := am.authManager.GetUserID(ctx)
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusUnauthorized, response.ErrInvalidToken)
+		return response.ErrorResponse(ctx, http.StatusUnauthorized, err.Error())
 	}
 
 	exist, err := am.userService.UserExistsByID(ctx.Context(), userID)
@@ -72,6 +72,7 @@ func (am *AuthMW) AuthUserMiddleware(ctx *fiber.Ctx) error {
 	}
 
 	if exist == false {
+		log.Printf("Faled to auth user: %v - exist", exist)
 		return response.ErrorResponse(ctx, http.StatusUnauthorized, response.ErrInvalidToken)
 	}
 
@@ -80,17 +81,17 @@ func (am *AuthMW) AuthUserMiddleware(ctx *fiber.Ctx) error {
 
 func (am *AuthMW) AuthAdminMiddleware(ctx *fiber.Ctx) error {
 	err := am.authManager.Validate(ctx)
-
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusUnauthorized, response.ErrInvalidToken)
+		return response.ErrorResponse(ctx, http.StatusUnauthorized, err.Error())
 	}
 
 	userID, err := am.authManager.GetUserID(ctx)
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusUnauthorized, response.ErrInvalidToken)
+		return response.ErrorResponse(ctx, http.StatusUnauthorized, err.Error())
 	}
 
 	if userID != am.cfg.ADMIN.ID {
+		log.Printf("Faled, user is not admin: %v - userID", userID)
 		return response.ErrorResponse(ctx, http.StatusForbidden, response.ErrInvalidToken)
 	}
 
@@ -99,28 +100,28 @@ func (am *AuthMW) AuthAdminMiddleware(ctx *fiber.Ctx) error {
 
 func (am *AuthMW) AuthFileActionMiddleware(ctx *fiber.Ctx) error {
 	err := am.authManager.Validate(ctx)
-
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusUnauthorized, response.ErrInvalidToken)
+		return response.ErrorResponse(ctx, http.StatusUnauthorized, err.Error())
 	}
 
 	userID, err := am.authManager.GetUserID(ctx)
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusUnauthorized, response.ErrInvalidToken)
+		return response.ErrorResponse(ctx, http.StatusUnauthorized, err.Error())
 	}
 
 	fileID, err := strconv.Atoi(ctx.Params(fileIDParam))
-	if err != nil || fileID == 0 {
+	if err != nil || fileID <= 0 {
+		log.Printf("Faled to get file id or invalid file id: %v - fileID, %v - err", fileID, err)
 		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
 
 	exist, err := am.fileMetaService.FileMetasExistsByIDAndUserID(ctx.Context(), fileID, userID)
-
 	if err != nil {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
 
 	if exist == false {
+		log.Printf("Faled, user is not have rights to work with files: %v - userID", userID)
 		return response.ErrorResponse(ctx, http.StatusForbidden, response.ErrInvalidToken)
 	}
 

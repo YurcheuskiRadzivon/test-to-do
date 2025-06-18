@@ -71,7 +71,7 @@ func (nc *NoteControl) GetNotes(ctx *fiber.Ctx) error {
 	userID, err := nc.authManager.GetUserID(ctx)
 	res := make([]request.GetNoteReq, 0)
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidToken)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
 
 	notes, err := nc.noteService.GetNotes(ctx.Context(), userID)
@@ -95,7 +95,7 @@ func (nc *NoteControl) GetNotes(ctx *fiber.Ctx) error {
 func (nc *NoteControl) GetNote(ctx *fiber.Ctx) error {
 	userID, err := nc.authManager.GetUserID(ctx)
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidToken)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
 
 	noteID, err := strconv.Atoi(ctx.Params(jwtservice.ParamID))
@@ -122,7 +122,7 @@ func (nc *NoteControl) GetNote(ctx *fiber.Ctx) error {
 func (nc *NoteControl) CreateNote(ctx *fiber.Ctx) error {
 	userID, err := nc.authManager.GetUserID(ctx)
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidToken)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
 
 	title := ctx.FormValue(nameFormTitle)
@@ -138,7 +138,7 @@ func (nc *NoteControl) CreateNote(ctx *fiber.Ctx) error {
 
 	uriList, err := nc.fileManager.UploadFiles(ctx, files)
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
 
 	noteID, err := nc.noteService.CreateNote(ctx.Context(), entity.Note{
@@ -173,7 +173,7 @@ func (nc *NoteControl) CreateNote(ctx *fiber.Ctx) error {
 func (nc *NoteControl) UpdateNote(ctx *fiber.Ctx) error {
 	userID, err := nc.authManager.GetUserID(ctx)
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidToken)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
 
 	noteID, err := strconv.Atoi(ctx.Params(jwtservice.HeaderAuthorization))
@@ -206,7 +206,7 @@ func (nc *NoteControl) UpdateNote(ctx *fiber.Ctx) error {
 func (nc *NoteControl) DeleteNote(ctx *fiber.Ctx) error {
 	userID, err := nc.authManager.GetUserID(ctx)
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidToken)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
 
 	noteID, err := strconv.Atoi(ctx.Params(jwtservice.ParamID))
@@ -226,7 +226,7 @@ func (nc *NoteControl) DeleteNote(ctx *fiber.Ctx) error {
 		}
 
 		if err = nc.fileManager.DeleteFile(ctx, uri); err != nil {
-			return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+			return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		}
 	}
 

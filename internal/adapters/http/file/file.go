@@ -2,6 +2,7 @@ package file
 
 import (
 	"context"
+	"log"
 
 	"mime/multipart"
 	"net/http"
@@ -74,7 +75,7 @@ func (fc *FileControl) DownloadFile(ctx *fiber.Ctx) error {
 
 	url, err := fc.fileManager.DownloadFile(ctx, uri)
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
 
 	return ctx.Redirect(url, fiber.StatusFound)
@@ -92,7 +93,7 @@ func (fc *FileControl) DeleteFile(ctx *fiber.Ctx) error {
 	}
 
 	if err := fc.fileManager.DeleteFile(ctx, uri); err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
 
 	if err := fc.fileMetaService.DeleteFileMetaByID(ctx.Context(), fileID); err != nil {
@@ -111,7 +112,7 @@ func (fc *FileControl) UploadFiles(ctx *fiber.Ctx) error {
 	}
 	userID, err := fc.authManager.GetUserID(ctx)
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidToken)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
 
 	_, err = fc.noteService.GetNote(ctx.Context(), noteID, userID)
@@ -121,6 +122,7 @@ func (fc *FileControl) UploadFiles(ctx *fiber.Ctx) error {
 
 	form, err := ctx.MultipartForm()
 	if err != nil {
+		log.Printf("Failed get form: %v", err)
 		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
 
@@ -128,8 +130,9 @@ func (fc *FileControl) UploadFiles(ctx *fiber.Ctx) error {
 
 	uriList, err := fc.fileManager.UploadFiles(ctx, files)
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
+
 	for i := range uriList {
 		err := fc.fileMetaService.CreateFileMeta(ctx.Context(), entity.FileMeta{
 			ContentType: files[i].Header.Get(contentType),

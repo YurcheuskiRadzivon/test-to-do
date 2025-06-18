@@ -2,12 +2,12 @@ package admin
 
 import (
 	"context"
+	"log"
 	"net/http"
 
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/request"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/response"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/entity"
-	"github.com/YurcheuskiRadzivon/test-to-do/pkg/jwtservice"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -51,7 +51,7 @@ func NewAdminControl(
 func (ac *AdminControl) GetUsers(ctx *fiber.Ctx) error {
 	userID, err := ac.authManager.GetUserID(ctx)
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, jwtservice.StatusInvalidToken)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
 
 	if userID != 0 {
@@ -69,12 +69,13 @@ func (ac *AdminControl) GetUsers(ctx *fiber.Ctx) error {
 func (ac *AdminControl) CreateUser(ctx *fiber.Ctx) error {
 	var req request.OperationUserRequest
 	if err := ctx.BodyParser(&req); err != nil {
+		log.Printf("Faled to parse body: %v", err)
 		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
 
 	hashedPassword, err := ac.encryptManager.EncodePassword(req.Password)
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
 
 	_, err = ac.userService.CreateUser(ctx.Context(), entity.User{

@@ -52,7 +52,8 @@ func Run(cfg *config.Config) {
 	//JWT
 	jwtS := jwtservice.New(cfg.JWT.SECRETKEY)
 
-	//Client
+	//MinioClient
+	//Create minio client
 	minioClient, err := minio.New(
 		cfg.LOCALSTACK.INTERNAL_ENDPOINT,
 		cfg.LOCALSTACK.ACCESS_KEY,
@@ -63,6 +64,7 @@ func Run(cfg *config.Config) {
 		log.Fatal("minio: ", err)
 	}
 
+	//Create bucket
 	exists, err := minioClient.BucketExists(cfg.LOCALSTACK.BUCKET)
 	if err != nil {
 		log.Fatal("minio: create bucket: ", err)
@@ -74,11 +76,12 @@ func Run(cfg *config.Config) {
 		}
 	}
 
+	//Debug connection test
 	buckets, err := minioClient.ListBuckets()
 	if err != nil {
-		log.Fatalf("Не могу подключиться к S3: %v", err)
+		log.Fatalf("minio: cannot connect to s3: %v", err)
 	}
-	log.Println("Сервер доступен. Бакеты:", buckets)
+	log.Println("Succesfully connections. Buckets:", buckets)
 
 	//Repo
 	noteRepo := repositories.NewNoteRepo(q, conn)

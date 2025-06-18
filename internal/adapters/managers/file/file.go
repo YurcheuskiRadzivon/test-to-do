@@ -10,8 +10,9 @@ import (
 )
 
 const (
-	mainPath             = "uploaded_files/"
-	contentType          = "Content-Type"
+	mainPath    = "uploaded_files/"
+	contentType = "Content-Type"
+
 	errUnsupportedFormat = "UNSUPPORTED_FORMAT"
 )
 
@@ -64,10 +65,6 @@ func (fm *FileManage) UploadFile(ctx *fiber.Ctx, file *multipart.FileHeader) (st
 	if err != nil {
 		return "", err
 	}
-	/*err := ctx.SaveFile(file, mainPath+filename+format)
-	if err != nil {
-		return "", err
-	}*/
 
 	return objectName, nil
 }

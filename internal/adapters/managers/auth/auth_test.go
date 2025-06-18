@@ -87,7 +87,7 @@ func TestGetUserIdInvalid_Integration(t *testing.T) {
 			out: struct {
 				err string
 			}{
-				err: jwtservice.StatusInvalidToken,
+				err: jwtservice.ErrInvalidOrExpiredToken,
 			},
 		},
 	}
@@ -108,7 +108,7 @@ func TestGetUserIdInvalid_Integration(t *testing.T) {
 
 		_, err := am.GetUserID(testFiberCtx)
 
-		assert.EqualError(t, err, jwtservice.StatusInvalidToken)
+		assert.EqualError(t, err, jwtservice.ErrInvalidOrExpiredToken)
 	}
 
 }

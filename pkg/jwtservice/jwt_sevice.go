@@ -2,18 +2,16 @@ package jwtservice
 
 import (
 	"errors"
+	"log"
 
 	"github.com/golang-jwt/jwt"
 )
 
 const (
-	ParamID             = "id"
-	HeaderAuthorization = "Authorization"
-	StatusInvalidToken  = "INVALID_OR_EXPIRED_TOKEN"
-)
-
-var (
-	ErrInvalidToken = errors.New(StatusInvalidToken)
+	ParamID                  = "id"
+	HeaderAuthorization      = "Authorization"
+	ErrInvalidOrExpiredToken = "INVALID_OR_EXPIRED_TOKEN"
+	ErrInvalidCreateToken    = "INVALID_CREATE_TOKEN"
 )
 
 type JWTService struct {
@@ -35,7 +33,8 @@ func (jwts *JWTService) CreateToken(payload jwt.MapClaims) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
 	t, err := token.SignedString(jwts.secretKey)
 	if err != nil {
-		return "", err
+		log.Printf("Failed to create token: %v", err)
+		return "", errors.New(ErrInvalidCreateToken)
 	}
 	return t, nil
 }
@@ -44,9 +43,9 @@ func (jwts *JWTService) GetUserID(tokenString string) (int, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return jwts.secretKey, nil
 	})
-
 	if err != nil {
-		return -1, err
+		log.Printf("Failed parse token: %v", err)
+		return -1, errors.New(ErrInvalidOrExpiredToken)
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
@@ -54,5 +53,6 @@ func (jwts *JWTService) GetUserID(tokenString string) (int, error) {
 		return int(userID), nil
 	}
 
-	return -1, ErrInvalidToken
+	log.Printf("Failed to parse token: %v", err)
+	return -1, errors.New(ErrInvalidOrExpiredToken)
 }
