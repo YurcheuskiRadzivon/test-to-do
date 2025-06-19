@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"log"
 	"net/http"
 
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/request"
@@ -51,6 +52,7 @@ func NewAuthControl(
 func (ac *AuthControl) Login(ctx *fiber.Ctx) error {
 	var req request.LoginRequest
 	if err := ctx.BodyParser(&req); err != nil {
+		log.Printf("Faled to parse body: %v", err)
 		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 	}
 
@@ -60,7 +62,7 @@ func (ac *AuthControl) Login(ctx *fiber.Ctx) error {
 	}
 
 	if ac.encryptManager.CheckPassword(req.Password, hashedPassword); err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrIvalidPassword)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
 
 	return ac.authManager.CreateAuthResponse(ctx, userID)

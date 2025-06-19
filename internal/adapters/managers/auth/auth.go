@@ -2,12 +2,19 @@ package authmanage
 
 import (
 	"errors"
+	"log"
 	"net/http"
 
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/response"
 	"github.com/YurcheuskiRadzivon/test-to-do/pkg/jwtservice"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt"
+)
+
+const (
+	userIDParam = "user_id"
+
+	ErrInvalidOrExpiredToken = "INVALID_OR_EXPIRED_TOKEN"
 )
 
 type AuthManager interface {
@@ -30,7 +37,7 @@ func (am *AuthManage) GetUserID(ctx *fiber.Ctx) (int, error) {
 	token := ctx.Get(jwtservice.HeaderAuthorization)
 	userID, err := am.jwtS.GetUserID(token)
 	if err != nil {
-		return 0, errors.New(jwtservice.StatusInvalidToken)
+		return 0, err
 	}
 	return userID, nil
 }
@@ -40,7 +47,8 @@ func (am *AuthManage) Validate(ctx *fiber.Ctx) error {
 		return am.jwtS.GetJwtSecretKey(), nil
 	})
 	if err != nil || !token.Valid {
-		return errors.New("INVALID_OR_EXPIRED_TOKEN")
+		log.Printf("Failed to parse token: %v- error, %v - token valid", err, token.Valid)
+		return errors.New(ErrInvalidOrExpiredToken)
 
 	}
 
@@ -48,12 +56,12 @@ func (am *AuthManage) Validate(ctx *fiber.Ctx) error {
 }
 func (am *AuthManage) CreateAuthResponse(ctx *fiber.Ctx, id int) error {
 	payload := jwt.MapClaims{
-		"user_id": id,
+		userIDParam: id,
 	}
 
 	token, err := am.jwtS.CreateToken(payload)
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrJWT)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
 
 	return ctx.Status(http.StatusOK).JSON(response.LoginResponse{

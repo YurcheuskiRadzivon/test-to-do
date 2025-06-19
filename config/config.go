@@ -7,11 +7,12 @@ import (
 
 type (
 	Config struct {
-		HTTP  HTTP
-		PG    PG
-		APP   APP
-		JWT   JWT
-		ADMIN ADMIN
+		HTTP       HTTP
+		PG         PG
+		APP        APP
+		JWT        JWT
+		ADMIN      ADMIN
+		LOCALSTACK LOCALSTACK
 	}
 
 	HTTP struct {
@@ -27,11 +28,19 @@ type (
 	}
 
 	JWT struct {
-		SECRETKEY string `env:"SECRET_KEY,required"`
+		SECRETKEY string `env:"JWT_SECRET_KEY,required"`
 	}
 
 	ADMIN struct {
 		ID int `env:"ADMIN_ID,required"`
+	}
+
+	LOCALSTACK struct {
+		EXTERNAL_ENDPOINT string `env:"LOCALSTACK_ENDPOINT_EXTERNAL,required"`
+		INTERNAL_ENDPOINT string `env:"LOCALSTACK_ENDPOINT_INTERNAL,required"`
+		ACCESS_KEY        string `env:"LOCALSTACK_ACCESS_KEY,required"`
+		SECRET_KEY        string `env:"LOCALSTACK_SECRET_KEY,required"`
+		BUCKET            string `env:"LOCALSTACK_BUCKET,required"`
 	}
 )
 

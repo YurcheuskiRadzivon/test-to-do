@@ -7,7 +7,6 @@ import (
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/request"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/response"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/entity"
-	"github.com/YurcheuskiRadzivon/test-to-do/pkg/jwtservice"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -53,7 +52,7 @@ func (uc *UserControl) GetUser(ctx *fiber.Ctx) error {
 
 	userID, err := uc.authManager.GetUserID(ctx)
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, jwtservice.StatusInvalidToken)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
 
 	username, email, err := uc.userService.GetUser(ctx.Context(), userID)
@@ -69,7 +68,7 @@ func (uc *UserControl) GetUser(ctx *fiber.Ctx) error {
 func (uc *UserControl) UpdateUser(ctx *fiber.Ctx) error {
 	userID, err := uc.authManager.GetUserID(ctx)
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, jwtservice.StatusInvalidToken)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
 
 	var req request.OperationUserRequest
@@ -79,7 +78,7 @@ func (uc *UserControl) UpdateUser(ctx *fiber.Ctx) error {
 
 	hashedPassword, err := uc.encryptManager.EncodePassword(req.Password)
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
 
 	err = uc.userService.UpdateUser(ctx.Context(), entity.User{
@@ -101,7 +100,7 @@ func (uc *UserControl) UpdateUser(ctx *fiber.Ctx) error {
 func (uc *UserControl) DeleteUser(ctx *fiber.Ctx) error {
 	userID, err := uc.authManager.GetUserID(ctx)
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, jwtservice.StatusInvalidToken)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
 
 	err = uc.userService.DeleteUser(ctx.Context(), userID)
