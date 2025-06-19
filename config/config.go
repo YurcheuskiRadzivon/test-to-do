@@ -13,6 +13,7 @@ type (
 		JWT        JWT
 		ADMIN      ADMIN
 		LOCALSTACK LOCALSTACK
+		FSSTORAGE  FSSTORAGE
 	}
 
 	HTTP struct {
@@ -41,6 +42,11 @@ type (
 		ACCESS_KEY        string `env:"LOCALSTACK_ACCESS_KEY,required"`
 		SECRET_KEY        string `env:"LOCALSTACK_SECRET_KEY,required"`
 		BUCKET            string `env:"LOCALSTACK_BUCKET,required"`
+	}
+
+	FSSTORAGE struct {
+		EXTERNAL_ENDPOINT string `env:"FSS_ENDPOINT_EXTERNAL,required"`
+		PATH              string `env:"FSS_PATH,required"`
 	}
 )
 

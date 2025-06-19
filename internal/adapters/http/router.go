@@ -35,11 +35,11 @@ func NewRoute(
 		cfg:             cfg,
 	}
 
-	//app.Static("/uploadfiles/", "./uploaded_files/")
-	/*app.Get("/uploadfiles/:filename", func(c *fiber.Ctx) error {
+	app.Static(cfg.FSSTORAGE.EXTERNAL_ENDPOINT, cfg.FSSTORAGE.PATH)
+	app.Get(fmt.Sprintf("%s:filename", cfg.FSSTORAGE.EXTERNAL_ENDPOINT), func(c *fiber.Ctx) error {
 		filename := c.Params("filename")
 		return c.SendFile("./uploaded_files/" + filename)
-	})*/
+	})
 
 	app.Static("/swagger/swagger.yaml", "./docs/swagger.yaml")
 	app.Get("/swagger/*", swagger.New(swagger.Config{

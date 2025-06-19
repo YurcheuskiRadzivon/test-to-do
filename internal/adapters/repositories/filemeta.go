@@ -2,10 +2,17 @@ package repositories
 
 import (
 	"context"
+	"errors"
+	"log"
 
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/entity"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/infrastructure/database/queries"
 	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+const (
+	ErrGetFileMetaByID = "FAILED_TO GET_FILEMETA_BY_ID"
+	ErrGetFileMetas    = "FAILED_TO_GET_FILEMETAS"
 )
 
 type FileMetaRepo struct {
@@ -47,7 +54,8 @@ func (fmr *FileMetaRepo) FileMetasExistsByIDAndUserID(ctx context.Context, id in
 func (fmr *FileMetaRepo) GetFileMetaByID(ctx context.Context, id int) (entity.FileMeta, error) {
 	fileMeta, err := fmr.queries.GetFileMetaByID(ctx, id)
 	if err != nil {
-		return entity.FileMeta{}, err
+		log.Printf("Failed to get file meta by ID: %v", err)
+		return entity.FileMeta{}, errors.New(ErrGetFileMetaByID)
 	}
 	return entity.FileMeta{
 		ContentType: fileMeta.ContentType,
@@ -71,7 +79,8 @@ func (fmr *FileMetaRepo) GetFileMetaIDByID(ctx context.Context, ownerType entity
 func (fmr *FileMetaRepo) GetFileMetas(ctx context.Context) ([]entity.FileMeta, error) {
 	res, err := fmr.queries.GetFileMetas(ctx)
 	if err != nil {
-		return nil, err
+		log.Printf("Failed to get file metas: %v", err)
+		return nil, errors.New(ErrGetFileMetas)
 	}
 
 	fileMetas := make([]entity.FileMeta, 0)

@@ -60,7 +60,7 @@ func (ac *AdminControl) GetUsers(ctx *fiber.Ctx) error {
 
 	users, err := ac.userService.GetUsers(ctx.Context())
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
 
 	return ctx.Status(http.StatusOK).JSON(users)
@@ -85,7 +85,7 @@ func (ac *AdminControl) CreateUser(ctx *fiber.Ctx) error {
 	})
 
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
 
 	return ctx.Status(http.StatusOK).JSON(response.CreateUserResponse{

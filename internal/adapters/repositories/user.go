@@ -2,10 +2,19 @@ package repositories
 
 import (
 	"context"
+	"errors"
+	"log"
 
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/entity"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/infrastructure/database/queries"
 	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+const (
+	ErrGetUsers      = "FAILED_TO_GET_USERS"
+	ErrGetUser       = "FAILED_TO_GET_USER"
+	ErrCreateUser    = "FAILED_CREATING_USER"
+	ErrGetUserParams = "FAILED_TO_GET_USER_PARAMS_FOR_LOGIN"
 )
 
 type UserRepo struct {
@@ -27,7 +36,8 @@ func (ur *UserRepo) CreateUser(ctx context.Context, user entity.User) (int, erro
 		Email:    user.Email,
 	})
 	if err != nil {
-		return 0, err
+		log.Printf("Failed to create user: %v", err)
+		return 0, errors.New(ErrCreateUser)
 	}
 	return id, nil
 }
@@ -39,7 +49,8 @@ func (ur *UserRepo) DeleteUser(ctx context.Context, userID int) error {
 func (ur *UserRepo) GetUser(ctx context.Context, userID int) (string, string, error) {
 	userFromDB, err := ur.queries.GetUser(ctx, userID)
 	if err != nil {
-		return "", "", err
+		log.Printf("Failed to get user: %v", err)
+		return "", "", errors.New(ErrGetUser)
 	}
 
 	return userFromDB.Username, userFromDB.Email, nil
@@ -48,7 +59,8 @@ func (ur *UserRepo) GetUser(ctx context.Context, userID int) (string, string, er
 func (ur *UserRepo) GetUsers(ctx context.Context) ([]entity.User, error) {
 	usersFromDB, err := ur.queries.GetUsers(ctx)
 	if err != nil {
-		return nil, err
+		log.Printf("Failed to get users: %v", err)
+		return nil, errors.New(ErrGetUsers)
 	}
 
 	var users []entity.User
@@ -76,7 +88,8 @@ func (ur *UserRepo) UpdateUser(ctx context.Context, user entity.User) error {
 func (ur *UserRepo) GetUserLoginParams(ctx context.Context, username string) (int, string, error) {
 	loginParams, err := ur.queries.GetUserLoginParams(ctx, username)
 	if err != nil {
-		return -1, "", err
+		log.Printf("Failed to get user params: %v", err)
+		return -1, "", errors.New(ErrGetUserParams)
 	}
 	return loginParams.ID, loginParams.Password, nil
 }

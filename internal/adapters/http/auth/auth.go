@@ -58,7 +58,7 @@ func (ac *AuthControl) Login(ctx *fiber.Ctx) error {
 
 	userID, hashedPassword, err := ac.userService.GetUserLoginParams(ctx.Context(), req.Username)
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
 
 	if ac.encryptManager.CheckPassword(req.Password, hashedPassword); err != nil {
