@@ -14,6 +14,7 @@ type (
 		ADMIN      ADMIN
 		LOCALSTACK LOCALSTACK
 		FSSTORAGE  FSSTORAGE
+		MINIO      MINIO
 	}
 
 	HTTP struct {
@@ -42,6 +43,14 @@ type (
 		ACCESS_KEY        string `env:"LOCALSTACK_ACCESS_KEY,required"`
 		SECRET_KEY        string `env:"LOCALSTACK_SECRET_KEY,required"`
 		BUCKET            string `env:"LOCALSTACK_BUCKET,required"`
+	}
+
+	MINIO struct {
+		EXTERNAL_ENDPOINT string `env:"MINIO_ENDPOINT_EXTERNAL,required"`
+		INTERNAL_ENDPOINT string `env:"MINIO_ENDPOINT_INTERNAL,required"`
+		ACCESS_KEY        string `env:"MINIO_ACCESS_KEY,required"`
+		SECRET_KEY        string `env:"MINIO_SECRET_KEY,required"`
+		BUCKET            string `env:"MINIO_BUCKET,required"`
 	}
 
 	FSSTORAGE struct {

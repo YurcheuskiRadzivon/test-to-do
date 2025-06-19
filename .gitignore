@@ -28,3 +28,4 @@ coverage.txt
 uploaded_files/
 .localstack
 experimental/
+minio_data/

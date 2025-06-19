@@ -55,9 +55,9 @@ func Run(cfg *config.Config) {
 	//MinioClient
 	//Create minio client
 	minioClient, err := minio.New(
-		cfg.LOCALSTACK.INTERNAL_ENDPOINT,
-		cfg.LOCALSTACK.ACCESS_KEY,
-		cfg.LOCALSTACK.SECRET_KEY,
+		cfg.MINIO.INTERNAL_ENDPOINT,
+		cfg.MINIO.ACCESS_KEY,
+		cfg.MINIO.SECRET_KEY,
 		false,
 	)
 	if err != nil {
@@ -65,12 +65,12 @@ func Run(cfg *config.Config) {
 	}
 
 	//Create bucket
-	exists, err := minioClient.BucketExists(cfg.LOCALSTACK.BUCKET)
+	exists, err := minioClient.BucketExists(cfg.MINIO.BUCKET)
 	if err != nil {
 		log.Fatal("minio: create bucket: ", err)
 	}
 	if !exists {
-		err := minioClient.MakeBucket(cfg.LOCALSTACK.BUCKET, "")
+		err := minioClient.MakeBucket(cfg.MINIO.BUCKET, "")
 		if err != nil {
 			log.Fatal("minio: create bucket: ", err)
 		}
@@ -91,22 +91,22 @@ func Run(cfg *config.Config) {
 	//Storage
 	s3Storage := storages.NewS3Storage(
 		minioClient,
-		cfg.LOCALSTACK.BUCKET,
-		cfg.LOCALSTACK.EXTERNAL_ENDPOINT,
-		cfg.LOCALSTACK.INTERNAL_ENDPOINT,
+		cfg.MINIO.BUCKET,
+		cfg.MINIO.EXTERNAL_ENDPOINT,
+		cfg.MINIO.INTERNAL_ENDPOINT,
 	)
 
-	_ = s3Storage
 	fsStorage := storages.NewFSStorage(
 		cfg.FSSTORAGE.PATH,
 		cfg.FSSTORAGE.EXTERNAL_ENDPOINT,
 		cfg.APP.DOMAIN,
 	)
 
+	_ = fsStorage
 	//Managers
 	authManager := authmanage.NewAuthManage(jwtS)
 	encryptManager := encryptmanage.NewEncrypter()
-	fileManager := filemanage.NewFileManage(g, fsStorage)
+	fileManager := filemanage.NewFileManage(g, s3Storage)
 
 	//Service
 	noteService := service.NewNoteService(noteRepo)
