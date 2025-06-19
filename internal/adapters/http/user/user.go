@@ -57,7 +57,7 @@ func (uc *UserControl) GetUser(ctx *fiber.Ctx) error {
 
 	username, email, err := uc.userService.GetUser(ctx.Context(), userID)
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
 	return ctx.Status(http.StatusOK).JSON(response.UserData{
 		Username: username,
@@ -89,7 +89,7 @@ func (uc *UserControl) UpdateUser(ctx *fiber.Ctx) error {
 	})
 
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
 
 	return ctx.Status(http.StatusOK).JSON(response.MessageResponse{
@@ -105,7 +105,7 @@ func (uc *UserControl) DeleteUser(ctx *fiber.Ctx) error {
 
 	err = uc.userService.DeleteUser(ctx.Context(), userID)
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
 
 	return ctx.Status(http.StatusOK).JSON(response.MessageResponse{

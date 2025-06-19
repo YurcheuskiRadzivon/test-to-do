@@ -2,10 +2,17 @@ package repositories
 
 import (
 	"context"
+	"errors"
+	"log"
 
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/entity"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/infrastructure/database/queries"
 	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+const (
+	ErrGetNotes = "FAILED_TO_GET_NOTES"
+	ErrGetNote  = "FAILED_TO_GET_NOTE"
 )
 
 type NoteRepo struct {
@@ -39,7 +46,8 @@ func (nr *NoteRepo) DeleteNote(ctx context.Context, noteID int, authorID int) er
 func (nr *NoteRepo) GetNotes(ctx context.Context, authorID int) ([]entity.Note, error) {
 	notesWithoutFormat, err := nr.queries.GetNotes(ctx, authorID)
 	if err != nil {
-		return nil, err
+		log.Printf("Failed to get notes: %v", err)
+		return nil, errors.New(ErrGetNotes)
 	}
 
 	notes := make([]entity.Note, 0)
@@ -64,7 +72,8 @@ func (nr *NoteRepo) GetNote(ctx context.Context, noteID int, authorID int) (enti
 	})
 
 	if err != nil {
-		return entity.Note{}, err
+		log.Printf("Failed to get note: %v", err)
+		return entity.Note{}, errors.New(ErrGetNote)
 	}
 
 	note := entity.Note{

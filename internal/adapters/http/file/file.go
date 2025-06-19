@@ -70,7 +70,7 @@ func (fc *FileControl) DownloadFile(ctx *fiber.Ctx) error {
 
 	uri, err := fc.fileMetaService.GetFileMetaURI(ctx.Context(), fileID)
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
 
 	url, err := fc.fileManager.DownloadFile(ctx, uri)
@@ -89,7 +89,7 @@ func (fc *FileControl) DeleteFile(ctx *fiber.Ctx) error {
 
 	uri, err := fc.fileMetaService.GetFileMetaURI(ctx.Context(), fileID)
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
 
 	if err := fc.fileManager.DeleteFile(ctx, uri); err != nil {
@@ -97,7 +97,7 @@ func (fc *FileControl) DeleteFile(ctx *fiber.Ctx) error {
 	}
 
 	if err := fc.fileMetaService.DeleteFileMetaByID(ctx.Context(), fileID); err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
 
 	return ctx.Status(http.StatusOK).JSON(response.MessageResponse{
@@ -117,7 +117,7 @@ func (fc *FileControl) UploadFiles(ctx *fiber.Ctx) error {
 
 	_, err = fc.noteService.GetNote(ctx.Context(), noteID, userID)
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
 
 	form, err := ctx.MultipartForm()
@@ -142,7 +142,7 @@ func (fc *FileControl) UploadFiles(ctx *fiber.Ctx) error {
 			URI:         uriList[i],
 		})
 		if err != nil {
-			return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+			return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		}
 	}
 

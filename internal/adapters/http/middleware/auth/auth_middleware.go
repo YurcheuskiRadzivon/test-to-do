@@ -68,7 +68,7 @@ func (am *AuthMW) AuthUserMiddleware(ctx *fiber.Ctx) error {
 
 	exist, err := am.userService.UserExistsByID(ctx.Context(), userID)
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusUnauthorized, response.ErrInvalidToken)
+		return response.ErrorResponse(ctx, http.StatusUnauthorized, err.Error())
 	}
 
 	if exist == false {
@@ -117,7 +117,7 @@ func (am *AuthMW) AuthFileActionMiddleware(ctx *fiber.Ctx) error {
 
 	exist, err := am.fileMetaService.FileMetasExistsByIDAndUserID(ctx.Context(), fileID, userID)
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
 
 	if exist == false {

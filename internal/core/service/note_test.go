@@ -2,6 +2,7 @@ package service_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/entity"
@@ -33,7 +34,7 @@ func TestUpdateNoteInvalid_Unit(t *testing.T) {
 				Status:      "invalid_status",
 				AuthorID:    2,
 			},
-			out: service.ErrInvalidStatusFormat,
+			out: errors.New(service.ErrInvalidStatusFormat),
 		},
 		{
 			name: "invalid_id",
@@ -44,7 +45,7 @@ func TestUpdateNoteInvalid_Unit(t *testing.T) {
 				Status:      "SUCCESS",
 				AuthorID:    2,
 			},
-			out: service.ErrInvalidIDFormat,
+			out: errors.New(service.ErrInvalidIDFormat),
 		},
 		{
 			name: "invalid_tittle_format",
@@ -55,7 +56,7 @@ func TestUpdateNoteInvalid_Unit(t *testing.T) {
 				Status:      "SUCCESS",
 				AuthorID:    2,
 			},
-			out: service.ErrInvalidTitleFormat,
+			out: errors.New(service.ErrInvalidTitleFormat),
 		},
 	}
 
@@ -144,7 +145,7 @@ func TestDeleteNoteInvalid_Unit(t *testing.T) {
 				noteID:   -5,
 				authorID: 213,
 			},
-			out: service.ErrInvalidIDFormat,
+			out: errors.New(service.ErrInvalidIDFormat),
 		},
 	}
 
@@ -181,7 +182,7 @@ func TestDeleteValid_Unit(t *testing.T) {
 				noteID:   5,
 				authorID: 213,
 			},
-			out: service.ErrInvalidIDFormat,
+			out: errors.New(service.ErrInvalidIDFormat),
 		},
 	}
 
