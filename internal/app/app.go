@@ -89,12 +89,24 @@ func Run(cfg *config.Config) {
 	fileMetaRepo := repositories.NewFileMetaRepo(q, conn)
 
 	//Storage
-	s3Storage := storages.NewS3Storage(minioClient, cfg.LOCALSTACK.BUCKET, cfg.LOCALSTACK.EXTERNAL_ENDPOINT, cfg.LOCALSTACK.INTERNAL_ENDPOINT)
+	s3Storage := storages.NewS3Storage(
+		minioClient,
+		cfg.LOCALSTACK.BUCKET,
+		cfg.LOCALSTACK.EXTERNAL_ENDPOINT,
+		cfg.LOCALSTACK.INTERNAL_ENDPOINT,
+	)
+
+	_ = s3Storage
+	fsStorage := storages.NewFSStorage(
+		cfg.FSSTORAGE.PATH,
+		cfg.FSSTORAGE.EXTERNAL_ENDPOINT,
+		cfg.APP.DOMAIN,
+	)
 
 	//Managers
 	authManager := authmanage.NewAuthManage(jwtS)
 	encryptManager := encryptmanage.NewEncrypter()
-	fileManager := filemanage.NewFileManage(g, s3Storage)
+	fileManager := filemanage.NewFileManage(g, fsStorage)
 
 	//Service
 	noteService := service.NewNoteService(noteRepo)
