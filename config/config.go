@@ -1,19 +1,30 @@
 package config
 
 import (
+	"log"
+
 	"github.com/caarlos0/env/v11"
 	"github.com/joho/godotenv"
 )
 
+const (
+	StorageMinio      = "MINIO"
+	StorageLocalstack = "LOCALSTACK"
+	StorageFS         = "FS"
+	DefaultStorage    = "FS"
+)
+
 type (
 	Config struct {
-		HTTP       HTTP
-		PG         PG
-		APP        APP
-		JWT        JWT
-		ADMIN      ADMIN
-		LOCALSTACK LOCALSTACK
-		FSSTORAGE  FSSTORAGE
+		HTTP            HTTP
+		PG              PG
+		APP             APP
+		JWT             JWT
+		ADMIN           ADMIN
+		LOCALSTACK      LOCALSTACK
+		FSSTORAGE       FSSTORAGE
+		MINIO           MINIO
+		STORAGESWITCHER STORAGESWITCHER
 	}
 
 	HTTP struct {
@@ -36,12 +47,24 @@ type (
 		ID int `env:"ADMIN_ID,required"`
 	}
 
+	STORAGESWITCHER struct {
+		STORAGE string `env:"STORAGE,required"`
+	}
+
 	LOCALSTACK struct {
 		EXTERNAL_ENDPOINT string `env:"LOCALSTACK_ENDPOINT_EXTERNAL,required"`
 		INTERNAL_ENDPOINT string `env:"LOCALSTACK_ENDPOINT_INTERNAL,required"`
 		ACCESS_KEY        string `env:"LOCALSTACK_ACCESS_KEY,required"`
 		SECRET_KEY        string `env:"LOCALSTACK_SECRET_KEY,required"`
 		BUCKET            string `env:"LOCALSTACK_BUCKET,required"`
+	}
+
+	MINIO struct {
+		EXTERNAL_ENDPOINT string `env:"MINIO_ENDPOINT_EXTERNAL,required"`
+		INTERNAL_ENDPOINT string `env:"MINIO_ENDPOINT_INTERNAL,required"`
+		ACCESS_KEY        string `env:"MINIO_ACCESS_KEY,required"`
+		SECRET_KEY        string `env:"MINIO_SECRET_KEY,required"`
+		BUCKET            string `env:"MINIO_BUCKET,required"`
 	}
 
 	FSSTORAGE struct {
@@ -60,5 +83,17 @@ func NewConfig() (*Config, error) {
 		return nil, err
 	}
 
+	cfg.CheckStorageSwitcher()
+
 	return cfg, nil
+}
+
+func (c *Config) CheckStorageSwitcher() {
+	switch c.STORAGESWITCHER.STORAGE {
+	case StorageFS, StorageMinio, StorageLocalstack:
+		log.Printf("Check storage switcher - %v", c.STORAGESWITCHER.STORAGE)
+	default:
+		c.STORAGESWITCHER.STORAGE = DefaultStorage
+		log.Printf("Invalis Storage switcher, default check storage switcher - %v", c.STORAGESWITCHER.STORAGE)
+	}
 }

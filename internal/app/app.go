@@ -23,11 +23,11 @@ import (
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/service"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/infrastructure/database/queries"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/infrastructure/migrations"
+	minioclient "github.com/YurcheuskiRadzivon/test-to-do/internal/infrastructure/minio"
 	"github.com/YurcheuskiRadzivon/test-to-do/pkg/generator"
 	"github.com/YurcheuskiRadzivon/test-to-do/pkg/httpserver"
 	"github.com/YurcheuskiRadzivon/test-to-do/pkg/jwtservice"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/minio/minio-go"
 
 	_ "github.com/lib/pq"
 )
@@ -52,61 +52,59 @@ func Run(cfg *config.Config) {
 	//JWT
 	jwtS := jwtservice.New(cfg.JWT.SECRETKEY)
 
-	//MinioClient
-	//Create minio client
-	minioClient, err := minio.New(
-		cfg.LOCALSTACK.INTERNAL_ENDPOINT,
-		cfg.LOCALSTACK.ACCESS_KEY,
-		cfg.LOCALSTACK.SECRET_KEY,
-		false,
-	)
-	if err != nil {
-		log.Fatal("minio: ", err)
-	}
-
-	//Create bucket
-	exists, err := minioClient.BucketExists(cfg.LOCALSTACK.BUCKET)
-	if err != nil {
-		log.Fatal("minio: create bucket: ", err)
-	}
-	if !exists {
-		err := minioClient.MakeBucket(cfg.LOCALSTACK.BUCKET, "")
-		if err != nil {
-			log.Fatal("minio: create bucket: ", err)
-		}
-	}
-
-	//Debug connection test
-	buckets, err := minioClient.ListBuckets()
-	if err != nil {
-		log.Fatalf("minio: cannot connect to s3: %v", err)
-	}
-	log.Println("Succesfully connections. Buckets:", buckets)
-
 	//Repo
 	noteRepo := repositories.NewNoteRepo(q, conn)
 	userRepo := repositories.NewUserRepo(q, conn)
 	fileMetaRepo := repositories.NewFileMetaRepo(q, conn)
 
 	//Storage
-	s3Storage := storages.NewS3Storage(
-		minioClient,
-		cfg.LOCALSTACK.BUCKET,
-		cfg.LOCALSTACK.EXTERNAL_ENDPOINT,
-		cfg.LOCALSTACK.INTERNAL_ENDPOINT,
-	)
+	var storage storages.FileStorage
 
-	_ = s3Storage
-	fsStorage := storages.NewFSStorage(
-		cfg.FSSTORAGE.PATH,
-		cfg.FSSTORAGE.EXTERNAL_ENDPOINT,
-		cfg.APP.DOMAIN,
-	)
+	switch cfg.STORAGESWITCHER.STORAGE {
+	case config.StorageFS:
+		storage = storages.NewFSStorage(
+			cfg.FSSTORAGE.PATH,
+			cfg.FSSTORAGE.EXTERNAL_ENDPOINT,
+			cfg.APP.DOMAIN,
+		)
+	case config.StorageMinio:
+		minioClient, err := minioclient.NewMinioClientAndDebug(
+			cfg.MINIO.INTERNAL_ENDPOINT,
+			cfg.MINIO.ACCESS_KEY,
+			cfg.MINIO.SECRET_KEY,
+			cfg.MINIO.BUCKET,
+		)
+		if err != nil {
+			log.Fatal(err)
+		}
+		storage = storages.NewS3Storage(
+			minioClient,
+			cfg.MINIO.BUCKET,
+			cfg.MINIO.EXTERNAL_ENDPOINT,
+			cfg.MINIO.INTERNAL_ENDPOINT,
+		)
+	case config.StorageLocalstack:
+		localstackClient, err := minioclient.NewMinioClientAndDebug(
+			cfg.LOCALSTACK.INTERNAL_ENDPOINT,
+			cfg.LOCALSTACK.ACCESS_KEY,
+			cfg.LOCALSTACK.SECRET_KEY,
+			cfg.LOCALSTACK.BUCKET,
+		)
+		if err != nil {
+			log.Fatal(err)
+		}
+		storage = storages.NewS3Storage(
+			localstackClient,
+			cfg.LOCALSTACK.BUCKET,
+			cfg.LOCALSTACK.EXTERNAL_ENDPOINT,
+			cfg.LOCALSTACK.INTERNAL_ENDPOINT,
+		)
+	}
 
 	//Managers
 	authManager := authmanage.NewAuthManage(jwtS)
 	encryptManager := encryptmanage.NewEncrypter()
-	fileManager := filemanage.NewFileManage(g, fsStorage)
+	fileManager := filemanage.NewFileManage(g, storage)
 
 	//Service
 	noteService := service.NewNoteService(noteRepo)
