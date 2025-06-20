@@ -21,6 +21,7 @@ type Querier interface {
 	GetFileMetaIDByID(ctx context.Context, arg GetFileMetaIDByIDParams) ([]int, error)
 	GetFileMetaURI(ctx context.Context, id int) (string, error)
 	GetFileMetas(ctx context.Context) ([]Filemeta, error)
+	GetFileMetasIDByUserID(ctx context.Context, userID int) ([]int, error)
 	GetNote(ctx context.Context, arg GetNoteParams) (Note, error)
 	GetNotes(ctx context.Context, authorID int) ([]Note, error)
 	GetUser(ctx context.Context, id int) (GetUserRow, error)

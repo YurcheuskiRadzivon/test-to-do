@@ -15,4 +15,5 @@ type FileMetaRepository interface {
 	GetFileMetaByID(ctx context.Context, id int) (entity.FileMeta, error)
 	GetFileMetaURI(ctx context.Context, id int) (string, error)
 	GetFileMetas(ctx context.Context) ([]entity.FileMeta, error)
+	GetFileMetasIDByUserID(ctx context.Context, userID int) ([]int, error)
 }

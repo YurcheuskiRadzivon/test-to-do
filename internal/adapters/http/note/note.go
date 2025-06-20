@@ -164,6 +164,16 @@ func (nc *NoteControl) CreateNote(ctx *fiber.Ctx) error {
 			URI:         uriList[i],
 		})
 		if err != nil {
+			if err := nc.noteService.DeleteNote(ctx.Context(), noteID, userID); err != nil {
+				return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+			}
+
+			for _, uri := range uriList {
+				if err := nc.fileManager.DeleteFile(ctx, uri); err != nil {
+					return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+				}
+			}
+
 			return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		}
 	}

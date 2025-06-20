@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"log"
 	"net/http"
 
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/request"
@@ -24,6 +25,15 @@ type EncryptManager interface {
 	EncodePassword(password string) (string, error)
 }
 
+type FileMetaService interface {
+	GetFileMetasIDByUserID(ctx context.Context, userID int) ([]int, error)
+	GetFileMetaURI(ctx context.Context, id int) (string, error)
+}
+
+type FileManager interface {
+	DeleteFile(ctx *fiber.Ctx, path string) error
+}
+
 type UserController interface {
 	GetUser(ctx *fiber.Ctx) error
 	UpdateUser(ctx *fiber.Ctx) error
@@ -31,20 +41,26 @@ type UserController interface {
 }
 
 type UserControl struct {
-	userService    UserService
-	authManager    AuthManager
-	encryptManager EncryptManager
+	userService     UserService
+	authManager     AuthManager
+	encryptManager  EncryptManager
+	fileMetaService FileMetaService
+	fileManager     FileManager
 }
 
 func NewUserControl(
 	userService UserService,
 	authManager AuthManager,
 	encryptManager EncryptManager,
+	fileMetaService FileMetaService,
+	fileManager FileManager,
 ) *UserControl {
 	return &UserControl{
-		userService:    userService,
-		authManager:    authManager,
-		encryptManager: encryptManager,
+		userService:     userService,
+		authManager:     authManager,
+		encryptManager:  encryptManager,
+		fileMetaService: fileMetaService,
+		fileManager:     fileManager,
 	}
 }
 
@@ -101,6 +117,19 @@ func (uc *UserControl) DeleteUser(ctx *fiber.Ctx) error {
 	userID, err := uc.authManager.GetUserID(ctx)
 	if err != nil {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
+	}
+
+	fileMetasID, err := uc.fileMetaService.GetFileMetasIDByUserID(ctx.Context(), userID)
+	for _, fileMetaID := range fileMetasID {
+		uri, err := uc.fileMetaService.GetFileMetaURI(ctx.Context(), fileMetaID)
+		if err != nil {
+			log.Printf("Failed to get uri while delete user - %v", err)
+			return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+		}
+		if err := uc.fileManager.DeleteFile(ctx, uri); err != nil {
+			log.Printf("Failed to get uri while delete user - %v", err)
+			return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
+		}
 	}
 
 	err = uc.userService.DeleteUser(ctx.Context(), userID)
