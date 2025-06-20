@@ -187,3 +187,29 @@ func (q *Queries) GetFileMetas(ctx context.Context) ([]Filemeta, error) {
 	}
 	return items, nil
 }
+
+const getFileMetasIDByUserID = `-- name: GetFileMetasIDByUserID :many
+SELECT id
+FROM filemetas
+WHERE user_id = $1
+`
+
+func (q *Queries) GetFileMetasIDByUserID(ctx context.Context, userID int) ([]int, error) {
+	rows, err := q.db.Query(ctx, getFileMetasIDByUserID, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int
+	for rows.Next() {
+		var id int
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

@@ -116,7 +116,7 @@ func Run(cfg *config.Config) {
 
 	//Controller
 	authController := auth.NewAuthControl(userService, authManager, encryptManager)
-	userController := user.NewUserControl(userService, authManager, encryptManager)
+	userController := user.NewUserControl(userService, authManager, encryptManager, fileMetaService, fileManager)
 	adminController := admin.NewAdminControl(userService, authManager, encryptManager)
 	noteController := note.NewNoteControl(fileMetaService, noteService, authManager, fileManager)
 	fileController := file.NewFileControl(fileMetaService, fileManager, authManager, noteService)

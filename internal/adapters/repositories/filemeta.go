@@ -98,3 +98,7 @@ func (fmr *FileMetaRepo) GetFileMetas(ctx context.Context) ([]entity.FileMeta, e
 
 	return fileMetas, nil
 }
+
+func (fmr *FileMetaRepo) GetFileMetasIDByUserID(ctx context.Context, userID int) ([]int, error) {
+	return fmr.queries.GetFileMetasIDByUserID(ctx, userID)
+}

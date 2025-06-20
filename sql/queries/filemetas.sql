@@ -36,6 +36,11 @@ SELECT id
 FROM filemetas
 WHERE owner_type = $1 AND owner_id = $2;
 
+-- name: GetFileMetasIDByUserID :many
+SELECT id
+FROM filemetas
+WHERE user_id = $1;
+
 -- name: GetFileMetas :many
 SELECT id, content_type, owner_type, owner_id,user_id, uri
 FROM filemetas;

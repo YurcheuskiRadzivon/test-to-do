@@ -11,6 +11,7 @@ import (
 
 const (
 	ErrInvalidOwnerType = "INVALID_OWNER_TYPE"
+	ErrGetFileMeta      = "FAILED_TO_GET_FILE_META"
 )
 
 type FileMetaService struct {
@@ -46,7 +47,12 @@ func (fms *FileMetaService) GetFileMetaIDByID(ctx context.Context, ownerType str
 		log.Printf("Failed owner type: %v - have type", ownerType)
 		return nil, errors.New(ErrInvalidOwnerType)
 	}
-	return fms.repo.GetFileMetaIDByID(ctx, entity.OwnerNote, ownerID)
+	filemetas, err := fms.repo.GetFileMetaIDByID(ctx, entity.OwnerNote, ownerID)
+	if err != nil {
+		log.Printf("Failed to get meta id by id: %v", err)
+		return nil, errors.New(ErrGetFileMeta)
+	}
+	return filemetas, nil
 }
 
 func (fms *FileMetaService) GetFileMetaByID(ctx context.Context, id int) (entity.FileMeta, error) {
@@ -68,4 +74,13 @@ func (fms *FileMetaService) GetFileMetas(ctx context.Context) ([]entity.FileMeta
 	}
 
 	return fileMetas, nil
+}
+
+func (fms *FileMetaService) GetFileMetasIDByUserID(ctx context.Context, userID int) ([]int, error) {
+	filemetas, err := fms.repo.GetFileMetasIDByUserID(ctx, userID)
+	if err != nil {
+		log.Printf("Failed to get meta id by id: %v", err)
+		return nil, errors.New(ErrGetFileMeta)
+	}
+	return filemetas, nil
 }
