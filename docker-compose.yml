@@ -43,6 +43,8 @@ services:
         #condition: service_healthy
       db:
         condition: service_healthy
+    extra_hosts:
+    - "host.docker.internal:host-gateway"
   
   localstack:
     image: localstack/localstack
