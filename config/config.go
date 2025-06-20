@@ -1,20 +1,30 @@
 package config
 
 import (
+	"log"
+
 	"github.com/caarlos0/env/v11"
 	"github.com/joho/godotenv"
 )
 
+const (
+	StorageMinio      = "MINIO"
+	StorageLocalstack = "LOCALSTACK"
+	StorageFS         = "FS"
+	DefaultStorage    = "FS"
+)
+
 type (
 	Config struct {
-		HTTP       HTTP
-		PG         PG
-		APP        APP
-		JWT        JWT
-		ADMIN      ADMIN
-		LOCALSTACK LOCALSTACK
-		FSSTORAGE  FSSTORAGE
-		MINIO      MINIO
+		HTTP            HTTP
+		PG              PG
+		APP             APP
+		JWT             JWT
+		ADMIN           ADMIN
+		LOCALSTACK      LOCALSTACK
+		FSSTORAGE       FSSTORAGE
+		MINIO           MINIO
+		STORAGESWITCHER STORAGESWITCHER
 	}
 
 	HTTP struct {
@@ -35,6 +45,10 @@ type (
 
 	ADMIN struct {
 		ID int `env:"ADMIN_ID,required"`
+	}
+
+	STORAGESWITCHER struct {
+		STORAGE string `env:"STORAGE,required"`
 	}
 
 	LOCALSTACK struct {
@@ -69,5 +83,17 @@ func NewConfig() (*Config, error) {
 		return nil, err
 	}
 
+	cfg.CheckStorageSwitcher()
+
 	return cfg, nil
+}
+
+func (c *Config) CheckStorageSwitcher() {
+	switch c.STORAGESWITCHER.STORAGE {
+	case StorageFS, StorageMinio, StorageLocalstack:
+		log.Printf("Check storage switcher - %v", c.STORAGESWITCHER.STORAGE)
+	default:
+		c.STORAGESWITCHER.STORAGE = DefaultStorage
+		log.Printf("Invalis Storage switcher, default check storage switcher - %v", c.STORAGESWITCHER.STORAGE)
+	}
 }
