@@ -157,12 +157,6 @@ func (nc *NoteControl) CreateNote(ctx *fiber.Ctx) error {
 	}, uriList, filesContentType, userID)
 
 	if err != nil {
-		for _, uri := range uriList {
-			if err := nc.fileManager.DeleteFile(ctx, uri); err != nil {
-				return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
-			}
-		}
-
 		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
 
@@ -215,22 +209,6 @@ func (nc *NoteControl) DeleteNote(ctx *fiber.Ctx) error {
 	if err != nil || noteID == 0 {
 		log.Printf("Faled to delete note id or invalid note id: %v - noteID, %v - err", noteID, err)
 		return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
-	}
-
-	fileMetasID, err := nc.fileMetaService.GetFileMetaIDByID(ctx.Context(), string(entity.OwnerNote), noteID)
-	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
-	}
-
-	for _, fileMetaID := range fileMetasID {
-		uri, err := nc.fileMetaService.GetFileMetaURI(ctx.Context(), fileMetaID)
-		if err != nil {
-			return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
-		}
-
-		if err = nc.fileManager.DeleteFile(ctx, uri); err != nil {
-			return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
-		}
 	}
 
 	err = nc.noteService.DeleteNote(ctx.Context(), noteID, userID)
