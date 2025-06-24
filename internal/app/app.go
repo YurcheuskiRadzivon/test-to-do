@@ -21,7 +21,6 @@ import (
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/repositories"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/storages"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/service"
-	"github.com/YurcheuskiRadzivon/test-to-do/internal/infrastructure/database/queries"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/infrastructure/migrations"
 	minioclient "github.com/YurcheuskiRadzivon/test-to-do/internal/infrastructure/minio"
 	"github.com/YurcheuskiRadzivon/test-to-do/pkg/generator"
@@ -44,7 +43,9 @@ func Run(cfg *config.Config) {
 		log.Fatal("connection: ", err)
 	}
 
-	q := queries.New(conn)
+	// q := queries.New(conn)
+
+	uow := repositories.NewUOW(conn)
 
 	//Generator
 	g := generator.NewGenerator()
@@ -53,9 +54,9 @@ func Run(cfg *config.Config) {
 	jwtS := jwtservice.New(cfg.JWT.SECRETKEY)
 
 	//Repo
-	noteRepo := repositories.NewNoteRepo(q, conn)
-	userRepo := repositories.NewUserRepo(q, conn)
-	fileMetaRepo := repositories.NewFileMetaRepo(q, conn)
+	//noteRepo := repositories.NewNoteRepo(q, conn)
+	// userRepo := repositories.NewUserRepo(q, conn)
+	// fileMetaRepo := repositories.NewFileMetaRepo(q, conn)
 
 	//Storage
 	var storage storages.FileStorage
@@ -107,9 +108,9 @@ func Run(cfg *config.Config) {
 	fileManager := filemanage.NewFileManage(g, storage)
 
 	//Service
-	noteService := service.NewNoteService(noteRepo)
-	userService := service.NewUserService(userRepo)
-	fileMetaService := service.NewFileMetaService(fileMetaRepo)
+	noteServiceV2 := service.NewNoteService(uow)
+	userService := service.NewUserService(uow)
+	fileMetaService := service.NewFileMetaService(uow)
 
 	//Middleware
 	authMiddleware := middleware.NewAuthMW(fileMetaService, authManager, userService, cfg)
@@ -118,8 +119,8 @@ func Run(cfg *config.Config) {
 	authController := auth.NewAuthControl(userService, authManager, encryptManager)
 	userController := user.NewUserControl(userService, authManager, encryptManager, fileMetaService, fileManager)
 	adminController := admin.NewAdminControl(userService, authManager, encryptManager)
-	noteController := note.NewNoteControl(fileMetaService, noteService, authManager, fileManager)
-	fileController := file.NewFileControl(fileMetaService, fileManager, authManager, noteService)
+	noteController := note.NewNoteControl(fileMetaService, noteServiceV2, authManager, fileManager)
+	fileController := file.NewFileControl(fileMetaService, fileManager, authManager, noteServiceV2)
 
 	httpserver := httpserver.New(cfg.HTTP.PORT)
 

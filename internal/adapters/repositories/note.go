@@ -7,6 +7,7 @@ import (
 
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/entity"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/infrastructure/database/queries"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -27,8 +28,24 @@ func NewNoteRepo(db *queries.Queries, pool *pgxpool.Pool) *NoteRepo {
 	}
 }
 
+func (nr *NoteRepo) WithTx(tx pgx.Tx) *NoteRepo {
+	return &NoteRepo{
+		queries: queries.New(tx),
+		pool:    nr.pool,
+	}
+}
+
 func (nr *NoteRepo) CreateNote(ctx context.Context, note entity.Note) (int, error) {
 	return nr.queries.CreateNote(ctx, queries.CreateNoteParams{
+		Title:       note.Title,
+		Description: note.Description,
+		Status:      note.Status,
+		AuthorID:    note.AuthorID,
+	})
+}
+
+func (nr *NoteRepo) CreateNoteWithTx(ctx context.Context, tx pgx.Tx, note entity.Note) (int, error) {
+	return nr.WithTx(tx).queries.CreateNote(ctx, queries.CreateNoteParams{
 		Title:       note.Title,
 		Description: note.Description,
 		Status:      note.Status,

@@ -10,6 +10,8 @@ import (
 )
 
 const (
+	contentType = "Content-Type"
+
 	statusSuccessfully = "SUCCESS"
 	statusInProgress   = "IN_PROGRESS"
 	statusNotStart     = "NOT_START"
@@ -23,39 +25,75 @@ const (
 )
 
 type NoteService struct {
-	repo ports.NoteRepository
+	uow ports.UnitOfWork
 }
 
-func NewNoteService(repo ports.NoteRepository) *NoteService {
-	return &NoteService{repo: repo}
+func NewNoteService(uow ports.UnitOfWork) *NoteService {
+	return &NoteService{uow: uow}
 }
 
-func (s *NoteService) CreateNote(ctx context.Context, note entity.Note) (int, error) {
-	id, err := s.repo.CreateNote(ctx, note)
+func (ns *NoteService) CreateNoteWithFilesWithTx(
+	ctx context.Context,
+	note entity.Note,
+	uriList []string,
+	filesContentType []string,
+	userID int,
+) error {
+	tx, err := ns.uow.BeginTx(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	NoteRepository := ns.uow.NoteRepository(tx)
+	FileMetaRepository := ns.uow.FileMetaRepository(tx)
+
+	noteID, err := NoteRepository.CreateNote(ctx, note)
 	if err != nil {
 		log.Printf("Failed to create note: %v", err)
-		return 0, errors.New(ErrCreateNote)
+		return errors.New(ErrCreateNote)
 	}
-	return id, nil
+
+	for i := range uriList {
+		err := FileMetaRepository.CreateFileMeta(ctx, entity.FileMeta{
+			ContentType: filesContentType[i],
+			OwnerType:   entity.OwnerNote,
+			OwnerID:     noteID,
+			UserID:      userID,
+			URI:         uriList[i],
+		})
+		if err != nil {
+			log.Printf("Failed to create fileMeta: %v", err)
+			return errors.New(ErrCreateNote)
+		}
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		return errors.New("FAILED_TO_END_CREATING_NOTE")
+	}
+
+	return nil
 }
 
-func (s *NoteService) GetNote(ctx context.Context, noteID int, authorID int) (entity.Note, error) {
-	note, err := s.repo.GetNote(ctx, noteID, authorID)
+func (ns *NoteService) GetNote(ctx context.Context, noteID int, authorID int) (entity.Note, error) {
+	NoteRepository := ns.uow.NoteRepository(nil)
+	note, err := NoteRepository.GetNote(ctx, noteID, authorID)
 	if err != nil {
 		return entity.Note{}, err
 	}
 	return note, nil
 }
 
-func (s *NoteService) GetNotes(ctx context.Context, authorID int) ([]entity.Note, error) {
-	notes, err := s.repo.GetNotes(ctx, authorID)
+func (ns *NoteService) GetNotes(ctx context.Context, authorID int) ([]entity.Note, error) {
+	NoteRepository := ns.uow.NoteRepository(nil)
+	notes, err := NoteRepository.GetNotes(ctx, authorID)
 	if err != nil {
 		return []entity.Note{}, err
 	}
 	return notes, nil
 }
 
-func (s *NoteService) UpdateNote(ctx context.Context, note entity.Note) error {
+func (ns *NoteService) UpdateNote(ctx context.Context, note entity.Note) error {
 	if CheckStatus(note.Status) == false {
 		log.Printf("Failed to update note: %v - check status", CheckStatus(note.Status))
 		return errors.New(ErrInvalidStatusFormat)
@@ -68,19 +106,20 @@ func (s *NoteService) UpdateNote(ctx context.Context, note entity.Note) error {
 		log.Printf("Failed to update note: %v - note title", note.Title)
 		return errors.New(ErrInvalidTitleFormat)
 	}
-
-	if err := s.repo.UpdateNote(ctx, note); err != nil {
+	NoteRepository := ns.uow.NoteRepository(nil)
+	if err := NoteRepository.UpdateNote(ctx, note); err != nil {
 		log.Printf("Failed to update note: %v", err)
 		return errors.New(ErrUpdateNote)
 	}
 	return nil
 }
 
-func (s *NoteService) DeleteNote(ctx context.Context, noteID int, authorID int) error {
+func (ns *NoteService) DeleteNote(ctx context.Context, noteID int, authorID int) error {
 	if noteID <= 0 {
 		return errors.New(ErrInvalidIDFormat)
 	}
-	if err := s.repo.DeleteNote(ctx, noteID, authorID); err != nil {
+	NoteRepository := ns.uow.NoteRepository(nil)
+	if err := NoteRepository.DeleteNote(ctx, noteID, authorID); err != nil {
 		log.Printf("Failed to delete note: %v", err)
 		return errors.New(ErrDeleteNote)
 	}

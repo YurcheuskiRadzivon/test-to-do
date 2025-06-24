@@ -15,19 +15,21 @@ const (
 )
 
 type FileMetaService struct {
-	repo ports.FileMetaRepository
+	uow ports.UnitOfWork
 }
 
-func NewFileMetaService(repo ports.FileMetaRepository) *FileMetaService {
-	return &FileMetaService{repo: repo}
+func NewFileMetaService(uow ports.UnitOfWork) *FileMetaService {
+	return &FileMetaService{uow: uow}
 }
 
 func (fms *FileMetaService) CreateFileMeta(ctx context.Context, fileMeta entity.FileMeta) error {
-	return fms.repo.CreateFileMeta(ctx, fileMeta)
+	fileMetaRepository := fms.uow.FileMetaRepository(nil)
+	return fileMetaRepository.CreateFileMeta(ctx, fileMeta)
 }
 
 func (fms *FileMetaService) DeleteFileMetaByID(ctx context.Context, id int) error {
-	return fms.repo.DeleteFileMetaByID(ctx, id)
+	fileMetaRepository := fms.uow.FileMetaRepository(nil)
+	return fileMetaRepository.DeleteFileMetaByID(ctx, id)
 }
 
 func (fms *FileMetaService) DeleteFileMetaByNoteID(ctx context.Context, ownerType string, ownerID int) error {
@@ -35,11 +37,15 @@ func (fms *FileMetaService) DeleteFileMetaByNoteID(ctx context.Context, ownerTyp
 		log.Printf("Failed owner type: %v - have type", ownerType)
 		return errors.New(ErrInvalidOwnerType)
 	}
-	return fms.repo.DeleteFileMetaByNoteID(ctx, entity.OwnerNote, ownerID)
+
+	fileMetaRepository := fms.uow.FileMetaRepository(nil)
+
+	return fileMetaRepository.DeleteFileMetaByNoteID(ctx, entity.OwnerNote, ownerID)
 }
 
 func (fms *FileMetaService) FileMetasExistsByIDAndUserID(ctx context.Context, id int, userID int) (bool, error) {
-	return fms.repo.FileMetasExistsByIDAndUserID(ctx, id, userID)
+	fileMetaRepository := fms.uow.FileMetaRepository(nil)
+	return fileMetaRepository.FileMetasExistsByIDAndUserID(ctx, id, userID)
 }
 
 func (fms *FileMetaService) GetFileMetaIDByID(ctx context.Context, ownerType string, ownerID int) ([]int, error) {
@@ -47,7 +53,10 @@ func (fms *FileMetaService) GetFileMetaIDByID(ctx context.Context, ownerType str
 		log.Printf("Failed owner type: %v - have type", ownerType)
 		return nil, errors.New(ErrInvalidOwnerType)
 	}
-	filemetas, err := fms.repo.GetFileMetaIDByID(ctx, entity.OwnerNote, ownerID)
+
+	fileMetaRepository := fms.uow.FileMetaRepository(nil)
+
+	filemetas, err := fileMetaRepository.GetFileMetaIDByID(ctx, entity.OwnerNote, ownerID)
 	if err != nil {
 		log.Printf("Failed to get meta id by id: %v", err)
 		return nil, errors.New(ErrGetFileMeta)
@@ -56,7 +65,9 @@ func (fms *FileMetaService) GetFileMetaIDByID(ctx context.Context, ownerType str
 }
 
 func (fms *FileMetaService) GetFileMetaByID(ctx context.Context, id int) (entity.FileMeta, error) {
-	fileMeta, err := fms.repo.GetFileMetaByID(ctx, id)
+	fileMetaRepository := fms.uow.FileMetaRepository(nil)
+
+	fileMeta, err := fileMetaRepository.GetFileMetaByID(ctx, id)
 	if err != nil {
 		return entity.FileMeta{}, err
 	}
@@ -64,11 +75,13 @@ func (fms *FileMetaService) GetFileMetaByID(ctx context.Context, id int) (entity
 }
 
 func (fms *FileMetaService) GetFileMetaURI(ctx context.Context, id int) (string, error) {
-	return fms.repo.GetFileMetaURI(ctx, id)
+	fileMetaRepository := fms.uow.FileMetaRepository(nil)
+	return fileMetaRepository.GetFileMetaURI(ctx, id)
 }
 
 func (fms *FileMetaService) GetFileMetas(ctx context.Context) ([]entity.FileMeta, error) {
-	fileMetas, err := fms.repo.GetFileMetas(ctx)
+	fileMetaRepository := fms.uow.FileMetaRepository(nil)
+	fileMetas, err := fileMetaRepository.GetFileMetas(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +90,8 @@ func (fms *FileMetaService) GetFileMetas(ctx context.Context) ([]entity.FileMeta
 }
 
 func (fms *FileMetaService) GetFileMetasIDByUserID(ctx context.Context, userID int) ([]int, error) {
-	filemetas, err := fms.repo.GetFileMetasIDByUserID(ctx, userID)
+	fileMetaRepository := fms.uow.FileMetaRepository(nil)
+	filemetas, err := fileMetaRepository.GetFileMetasIDByUserID(ctx, userID)
 	if err != nil {
 		log.Printf("Failed to get meta id by id: %v", err)
 		return nil, errors.New(ErrGetFileMeta)
