@@ -25,9 +25,11 @@ import (
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/infrastructure/database/queries"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/infrastructure/migrations"
 	minioclient "github.com/YurcheuskiRadzivon/test-to-do/internal/infrastructure/minio"
+	s3filecleaner "github.com/YurcheuskiRadzivon/test-to-do/internal/infrastructure/s3_file_cleaner"
 	"github.com/YurcheuskiRadzivon/test-to-do/pkg/generator"
 	"github.com/YurcheuskiRadzivon/test-to-do/pkg/httpserver"
 	"github.com/YurcheuskiRadzivon/test-to-do/pkg/jwtservice"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	_ "github.com/lib/pq"
@@ -123,6 +125,18 @@ func Run(cfg *config.Config) {
 	noteController := note.NewNoteControl(fileMetaService, noteService, authManager, fileManager)
 	fileController := file.NewFileControl(fileMetaService, fileManager, authManager, noteService)
 
+	//S3Cleaner
+	ctxS3C, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	connection, err := pgx.Connect(ctxS3C, cfg.PG.URL)
+	if err != nil {
+		log.Fatalf("failed to connect to PostgreSQL: %v", err)
+	}
+
+	s3Cleaner := s3filecleaner.NewS3Cleaner(connection, storage)
+
+	//HTTP
 	httpserver := httpserver.New(cfg.HTTP.PORT)
 
 	http.NewRoute(
@@ -135,6 +149,13 @@ func Run(cfg *config.Config) {
 		fileController,
 		cfg,
 	)
+
+	go func() {
+		if err := s3Cleaner.ListenForFileMetaEvents(ctxS3C); err != nil {
+			log.Printf("Filemeta listener stopped: %v", err)
+			cancel()
+		}
+	}()
 
 	httpserver.Start()
 
