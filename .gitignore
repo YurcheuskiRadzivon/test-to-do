@@ -25,7 +25,9 @@ coverage/
 coverage.txt
 
 # Static file
+experimental/
+
+# Storages
 uploaded_files/
 .localstack
-experimental/
 minio_data/

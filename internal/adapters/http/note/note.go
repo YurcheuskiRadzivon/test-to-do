@@ -144,38 +144,26 @@ func (nc *NoteControl) CreateNote(ctx *fiber.Ctx) error {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
 
-	noteID, err := nc.noteService.CreateNote(ctx.Context(), entity.Note{
+	filesContentType := make([]string, 0)
+	for i := range uriList {
+		filesContentType = append(filesContentType, files[i].Header.Get(contentType))
+	}
+
+	err = nc.noteService.CreateNoteWithFilesWithTx(ctx.Context(), entity.Note{
 		Title:       title,
 		Description: description,
 		Status:      status,
 		AuthorID:    userID,
-	})
+	}, uriList, filesContentType, userID)
 
 	if err != nil {
-		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
-	}
-
-	for i := range uriList {
-		err := nc.fileMetaService.CreateFileMeta(ctx.Context(), entity.FileMeta{
-			ContentType: files[i].Header.Get(contentType),
-			OwnerType:   entity.OwnerNote,
-			OwnerID:     noteID,
-			UserID:      userID,
-			URI:         uriList[i],
-		})
-		if err != nil {
-			if err := nc.noteService.DeleteNote(ctx.Context(), noteID, userID); err != nil {
+		for _, uri := range uriList {
+			if err := nc.fileManager.DeleteFile(ctx, uri); err != nil {
 				return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
 			}
-
-			for _, uri := range uriList {
-				if err := nc.fileManager.DeleteFile(ctx, uri); err != nil {
-					return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
-				}
-			}
-
-			return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		}
+
+		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 	}
 
 	return ctx.Status(http.StatusOK).JSON(response.MessageResponse{

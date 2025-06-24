@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"log"
 	"net/http"
 
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/http/request"
@@ -117,19 +116,6 @@ func (uc *UserControl) DeleteUser(ctx *fiber.Ctx) error {
 	userID, err := uc.authManager.GetUserID(ctx)
 	if err != nil {
 		return response.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
-	}
-
-	fileMetasID, err := uc.fileMetaService.GetFileMetasIDByUserID(ctx.Context(), userID)
-	for _, fileMetaID := range fileMetasID {
-		uri, err := uc.fileMetaService.GetFileMetaURI(ctx.Context(), fileMetaID)
-		if err != nil {
-			log.Printf("Failed to get uri while delete user - %v", err)
-			return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
-		}
-		if err := uc.fileManager.DeleteFile(ctx, uri); err != nil {
-			log.Printf("Failed to get uri while delete user - %v", err)
-			return response.ErrorResponse(ctx, http.StatusBadRequest, response.ErrInvalidRequest)
-		}
 	}
 
 	err = uc.userService.DeleteUser(ctx.Context(), userID)

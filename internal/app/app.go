@@ -18,6 +18,7 @@ import (
 	authmanage "github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/managers/auth"
 	encryptmanage "github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/managers/encrypt"
 	filemanage "github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/managers/file"
+	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/managers/transaction"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/repositories"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/storages"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/service"
@@ -51,11 +52,6 @@ func Run(cfg *config.Config) {
 
 	//JWT
 	jwtS := jwtservice.New(cfg.JWT.SECRETKEY)
-
-	//Repo
-	noteRepo := repositories.NewNoteRepo(q, conn)
-	userRepo := repositories.NewUserRepo(q, conn)
-	fileMetaRepo := repositories.NewFileMetaRepo(q, conn)
 
 	//Storage
 	var storage storages.FileStorage
@@ -105,11 +101,17 @@ func Run(cfg *config.Config) {
 	authManager := authmanage.NewAuthManage(jwtS)
 	encryptManager := encryptmanage.NewEncrypter()
 	fileManager := filemanage.NewFileManage(g, storage)
+	txManager := transaction.NewTxManager(conn)
+
+	//Repo
+	noteRepo := repositories.NewNoteRepo(q, conn)
+	userRepo := repositories.NewUserRepo(q, conn)
+	fileMetaRepo := repositories.NewFileMetaRepo(q, conn)
 
 	//Service
-	noteService := service.NewNoteService(noteRepo)
-	userService := service.NewUserService(userRepo)
-	fileMetaService := service.NewFileMetaService(fileMetaRepo)
+	noteService := service.NewNoteService(noteRepo, fileMetaRepo, txManager)
+	userService := service.NewUserService(userRepo, txManager)
+	fileMetaService := service.NewFileMetaService(fileMetaRepo, txManager)
 
 	//Middleware
 	authMiddleware := middleware.NewAuthMW(fileMetaService, authManager, userService, cfg)
