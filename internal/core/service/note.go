@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 
+	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/managers/transaction"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/entity"
 	ports "github.com/YurcheuskiRadzivon/test-to-do/internal/core/ports/repositories"
 )
@@ -25,11 +26,17 @@ const (
 )
 
 type NoteService struct {
-	uow ports.UnitOfWork
+	repoN     ports.NoteRepository
+	repoFM    ports.FileMetaRepository
+	txManager transaction.TransactionManager
 }
 
-func NewNoteService(uow ports.UnitOfWork) *NoteService {
-	return &NoteService{uow: uow}
+func NewNoteService(repoN ports.NoteRepository, repoFM ports.FileMetaRepository, txManager transaction.TransactionManager) *NoteService {
+	return &NoteService{
+		repoN:     repoN,
+		repoFM:    repoFM,
+		txManager: txManager,
+	}
 }
 
 func (ns *NoteService) CreateNoteWithFilesWithTx(
@@ -39,23 +46,20 @@ func (ns *NoteService) CreateNoteWithFilesWithTx(
 	filesContentType []string,
 	userID int,
 ) error {
-	tx, err := ns.uow.BeginTx(ctx)
+	tx, err := ns.txManager.BeginTx(ctx)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback(ctx)
 
-	NoteRepository := ns.uow.NoteRepository(tx)
-	FileMetaRepository := ns.uow.FileMetaRepository(tx)
-
-	noteID, err := NoteRepository.CreateNote(ctx, note)
+	noteID, err := ns.repoN.CreateNote(ctx, tx, note)
 	if err != nil {
 		log.Printf("Failed to create note: %v", err)
 		return errors.New(ErrCreateNote)
 	}
 
 	for i := range uriList {
-		err := FileMetaRepository.CreateFileMeta(ctx, entity.FileMeta{
+		err := ns.repoFM.CreateFileMeta(ctx, tx, entity.FileMeta{
 			ContentType: filesContentType[i],
 			OwnerType:   entity.OwnerNote,
 			OwnerID:     noteID,
@@ -76,8 +80,7 @@ func (ns *NoteService) CreateNoteWithFilesWithTx(
 }
 
 func (ns *NoteService) GetNote(ctx context.Context, noteID int, authorID int) (entity.Note, error) {
-	NoteRepository := ns.uow.NoteRepository(nil)
-	note, err := NoteRepository.GetNote(ctx, noteID, authorID)
+	note, err := ns.repoN.GetNote(ctx, nil, noteID, authorID)
 	if err != nil {
 		return entity.Note{}, err
 	}
@@ -85,8 +88,7 @@ func (ns *NoteService) GetNote(ctx context.Context, noteID int, authorID int) (e
 }
 
 func (ns *NoteService) GetNotes(ctx context.Context, authorID int) ([]entity.Note, error) {
-	NoteRepository := ns.uow.NoteRepository(nil)
-	notes, err := NoteRepository.GetNotes(ctx, authorID)
+	notes, err := ns.repoN.GetNotes(ctx, nil, authorID)
 	if err != nil {
 		return []entity.Note{}, err
 	}
@@ -106,8 +108,7 @@ func (ns *NoteService) UpdateNote(ctx context.Context, note entity.Note) error {
 		log.Printf("Failed to update note: %v - note title", note.Title)
 		return errors.New(ErrInvalidTitleFormat)
 	}
-	NoteRepository := ns.uow.NoteRepository(nil)
-	if err := NoteRepository.UpdateNote(ctx, note); err != nil {
+	if err := ns.repoN.UpdateNote(ctx, nil, note); err != nil {
 		log.Printf("Failed to update note: %v", err)
 		return errors.New(ErrUpdateNote)
 	}
@@ -118,8 +119,7 @@ func (ns *NoteService) DeleteNote(ctx context.Context, noteID int, authorID int)
 	if noteID <= 0 {
 		return errors.New(ErrInvalidIDFormat)
 	}
-	NoteRepository := ns.uow.NoteRepository(nil)
-	if err := NoteRepository.DeleteNote(ctx, noteID, authorID); err != nil {
+	if err := ns.repoN.DeleteNote(ctx, nil, noteID, authorID); err != nil {
 		log.Printf("Failed to delete note: %v", err)
 		return errors.New(ErrDeleteNote)
 	}

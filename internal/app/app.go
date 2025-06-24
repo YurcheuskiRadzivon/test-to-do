@@ -18,9 +18,11 @@ import (
 	authmanage "github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/managers/auth"
 	encryptmanage "github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/managers/encrypt"
 	filemanage "github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/managers/file"
+	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/managers/transaction"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/repositories"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/storages"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/service"
+	"github.com/YurcheuskiRadzivon/test-to-do/internal/infrastructure/database/queries"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/infrastructure/migrations"
 	minioclient "github.com/YurcheuskiRadzivon/test-to-do/internal/infrastructure/minio"
 	"github.com/YurcheuskiRadzivon/test-to-do/pkg/generator"
@@ -43,20 +45,13 @@ func Run(cfg *config.Config) {
 		log.Fatal("connection: ", err)
 	}
 
-	// q := queries.New(conn)
-
-	uow := repositories.NewUOW(conn)
+	q := queries.New(conn)
 
 	//Generator
 	g := generator.NewGenerator()
 
 	//JWT
 	jwtS := jwtservice.New(cfg.JWT.SECRETKEY)
-
-	//Repo
-	//noteRepo := repositories.NewNoteRepo(q, conn)
-	// userRepo := repositories.NewUserRepo(q, conn)
-	// fileMetaRepo := repositories.NewFileMetaRepo(q, conn)
 
 	//Storage
 	var storage storages.FileStorage
@@ -106,11 +101,17 @@ func Run(cfg *config.Config) {
 	authManager := authmanage.NewAuthManage(jwtS)
 	encryptManager := encryptmanage.NewEncrypter()
 	fileManager := filemanage.NewFileManage(g, storage)
+	txManager := transaction.NewTxManager(conn)
+
+	//Repo
+	noteRepo := repositories.NewNoteRepo(q, conn)
+	userRepo := repositories.NewUserRepo(q, conn)
+	fileMetaRepo := repositories.NewFileMetaRepo(q, conn)
 
 	//Service
-	noteServiceV2 := service.NewNoteService(uow)
-	userService := service.NewUserService(uow)
-	fileMetaService := service.NewFileMetaService(uow)
+	noteService := service.NewNoteService(noteRepo, fileMetaRepo, txManager)
+	userService := service.NewUserService(userRepo, txManager)
+	fileMetaService := service.NewFileMetaService(fileMetaRepo, txManager)
 
 	//Middleware
 	authMiddleware := middleware.NewAuthMW(fileMetaService, authManager, userService, cfg)
@@ -119,8 +120,8 @@ func Run(cfg *config.Config) {
 	authController := auth.NewAuthControl(userService, authManager, encryptManager)
 	userController := user.NewUserControl(userService, authManager, encryptManager, fileMetaService, fileManager)
 	adminController := admin.NewAdminControl(userService, authManager, encryptManager)
-	noteController := note.NewNoteControl(fileMetaService, noteServiceV2, authManager, fileManager)
-	fileController := file.NewFileControl(fileMetaService, fileManager, authManager, noteServiceV2)
+	noteController := note.NewNoteControl(fileMetaService, noteService, authManager, fileManager)
+	fileController := file.NewFileControl(fileMetaService, fileManager, authManager, noteService)
 
 	httpserver := httpserver.New(cfg.HTTP.PORT)
 

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 
+	"github.com/YurcheuskiRadzivon/test-to-do/internal/adapters/managers/transaction"
 	"github.com/YurcheuskiRadzivon/test-to-do/internal/core/entity"
 	ports "github.com/YurcheuskiRadzivon/test-to-do/internal/core/ports/repositories"
 )
@@ -16,16 +17,19 @@ const (
 )
 
 type UserService struct {
-	uow ports.UnitOfWork
+	repoU     ports.UserRepository
+	txManager transaction.TransactionManager
 }
 
-func NewUserService(uow ports.UnitOfWork) *UserService {
-	return &UserService{uow: uow}
+func NewUserService(repoU ports.UserRepository, txManager transaction.TransactionManager) *UserService {
+	return &UserService{
+		repoU:     repoU,
+		txManager: txManager,
+	}
 }
 
 func (us *UserService) CreateUser(ctx context.Context, user entity.User) (int, error) {
-	userRepository := us.uow.UserRepository(nil)
-	userID, err := userRepository.CreateUser(ctx, user)
+	userID, err := us.repoU.CreateUser(ctx, nil, user)
 	if err != nil {
 		return 0, err
 	}
@@ -33,8 +37,7 @@ func (us *UserService) CreateUser(ctx context.Context, user entity.User) (int, e
 }
 
 func (us *UserService) GetUser(ctx context.Context, userID int) (string, string, error) {
-	userRepository := us.uow.UserRepository(nil)
-	username, email, err := userRepository.GetUser(ctx, userID)
+	username, email, err := us.repoU.GetUser(ctx, nil, userID)
 	if err != nil {
 		return "", "", err
 	}
@@ -42,8 +45,7 @@ func (us *UserService) GetUser(ctx context.Context, userID int) (string, string,
 }
 
 func (us *UserService) GetUsers(ctx context.Context) ([]entity.User, error) {
-	userRepository := us.uow.UserRepository(nil)
-	users, err := userRepository.GetUsers(ctx)
+	users, err := us.repoU.GetUsers(ctx, nil)
 	if err != nil {
 		return []entity.User{}, err
 	}
@@ -51,8 +53,7 @@ func (us *UserService) GetUsers(ctx context.Context) ([]entity.User, error) {
 }
 
 func (us *UserService) UpdateUser(ctx context.Context, user entity.User) error {
-	userRepository := us.uow.UserRepository(nil)
-	err := userRepository.UpdateUser(ctx, user)
+	err := us.repoU.UpdateUser(ctx, nil, user)
 	if err != nil {
 		log.Printf("Failed to update user: %v", err)
 		return errors.New(ErrUpdateUser)
@@ -61,8 +62,7 @@ func (us *UserService) UpdateUser(ctx context.Context, user entity.User) error {
 }
 
 func (us *UserService) DeleteUser(ctx context.Context, userID int) error {
-	userRepository := us.uow.UserRepository(nil)
-	err := userRepository.DeleteUser(ctx, userID)
+	err := us.repoU.DeleteUser(ctx, nil, userID)
 	if err != nil {
 		log.Printf("Failed to delete user: %v", err)
 		return errors.New(ErrUpdateUser)
@@ -71,8 +71,7 @@ func (us *UserService) DeleteUser(ctx context.Context, userID int) error {
 }
 
 func (us *UserService) GetUserLoginParams(ctx context.Context, username string) (int, string, error) {
-	userRepository := us.uow.UserRepository(nil)
-	id, password, err := userRepository.GetUserLoginParams(ctx, username)
+	id, password, err := us.repoU.GetUserLoginParams(ctx, nil, username)
 	if err != nil {
 		return 0, "", err
 	}
@@ -80,8 +79,7 @@ func (us *UserService) GetUserLoginParams(ctx context.Context, username string) 
 }
 
 func (us *UserService) UserExistsByID(ctx context.Context, userID int) (bool, error) {
-	userRepository := us.uow.UserRepository(nil)
-	exist, err := userRepository.UserExistsByID(ctx, userID)
+	exist, err := us.repoU.UserExistsByID(ctx, nil, userID)
 	if err != nil {
 		log.Printf("Failed to check of existing user: %v", err)
 		return false, errors.New(ErrExistUser)
