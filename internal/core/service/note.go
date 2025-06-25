@@ -96,22 +96,23 @@ func (ns *NoteService) GetNotes(ctx context.Context, authorID int) ([]entity.Not
 }
 
 func (ns *NoteService) UpdateNote(ctx context.Context, note entity.Note) error {
-	if CheckStatus(note.Status) == false {
+	switch {
+	case CheckStatus(note.Status) == false:
 		log.Printf("Failed to update note: %v - check status", CheckStatus(note.Status))
 		return errors.New(ErrInvalidStatusFormat)
-	}
-	if note.NoteID <= 0 {
+	case note.NoteID <= 0:
 		log.Printf("Failed to update note: %v - noteID", note.NoteID)
 		return errors.New(ErrInvalidIDFormat)
-	}
-	if note.Title == "" {
+	case note.Title == "":
 		log.Printf("Failed to update note: %v - note title", note.Title)
 		return errors.New(ErrInvalidTitleFormat)
 	}
+
 	if err := ns.repoN.UpdateNote(ctx, nil, note); err != nil {
 		log.Printf("Failed to update note: %v", err)
 		return errors.New(ErrUpdateNote)
 	}
+
 	return nil
 }
 

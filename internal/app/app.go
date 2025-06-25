@@ -167,11 +167,13 @@ func Run(cfg *config.Config) {
 		log.Println("Shutdown")
 
 	case err := <-httpserver.Notify():
+		cancel()
 		log.Panicf("Httpserver: %s", err)
 	}
 
 	err = httpserver.Shutdown()
 	if err != nil {
+		cancel()
 		log.Fatalf("Httpserver: %v", err)
 	}
 }
